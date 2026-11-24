@@ -1908,6 +1908,7 @@ name = "learnharness-sync"
 version = "0.2.0-alpha.1"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "harness-sync-native",
  "serde",
  "serde_json",

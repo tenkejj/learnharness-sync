@@ -11,7 +11,10 @@ use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
 const VERSION: u32 = 1;
-const MAX_FRAME: usize = 64 * 1024;
+// A full supported LearnHarness profile can be 128 MiB. The helper returns
+// bounded base64 records in one one-use pipe response; cap the JSON expansion
+// above that contract and reject larger profiles before they leave the vault.
+const MAX_FRAME: usize = 180 * 1024 * 1024;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "operation", rename_all = "snake_case", deny_unknown_fields)]

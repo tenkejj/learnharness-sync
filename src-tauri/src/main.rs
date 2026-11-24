@@ -13,6 +13,7 @@ enum Command {
     ManagedLaunch,
     ManagedRecover,
     ManagedSnapshot,
+    ManagedExport,
     Status,
     Settings,
     SaveSettings,
@@ -43,6 +44,7 @@ impl Command {
             Self::ManagedLaunch => "managed_launch",
             Self::ManagedRecover => "managed_recover",
             Self::ManagedSnapshot => "managed_snapshot",
+            Self::ManagedExport => "managed_export",
             Self::Status => "status",
             Self::Settings => "settings",
             Self::SaveSettings => "save_settings",
@@ -79,6 +81,27 @@ async fn engine_request(
     args: Value,
 ) -> Result<Value, String> {
     if let Some(op) = command.name().strip_prefix("managed_") {
+        if op == "export" {
+            if args.get("consent") != Some(&Value::Bool(true)) {
+                return Err(
+                    "Confirm before sending real conversation data to the paired device.".into(),
+                );
+            }
+            let peer = args
+                .get("device")
+                .and_then(Value::as_str)
+                .ok_or("Choose a paired device")?
+                .to_owned();
+            let (manifest, payload) =
+                tauri::async_runtime::spawn_blocking(|| managed::capture_for_export(true))
+                    .await
+                    .map_err(|_| "Managed export helper stopped unexpectedly.")??;
+            return state
+                .engine
+                .export_managed(&peer, manifest, payload, true)
+                .await
+                .map_err(|e| e.to_string());
+        }
         if op == "snapshot" {
             return tauri::async_runtime::spawn_blocking(managed::snapshot)
                 .await
@@ -151,6 +174,18 @@ fn main() {
                     anyhow::ensure!(generation.is_dir(), "Managed generation is unavailable");
                     let path = generation.join("config/LearnHarness/data");
                     harness_sync_native::managed_profile::Tree::snapshot_summary(&path)
+                }
+                harness_sync_native::managed_bridge::Operation::Capture { consent: true } => {
+                    let vault = std::path::Path::new("/capture");
+                    anyhow::ensure!(
+                        std::fs::read(vault.join("active"))? == b"bridge\n",
+                        "Managed capture is not active"
+                    );
+                    let generation = vault.join("generation");
+                    anyhow::ensure!(generation.is_dir(), "Managed generation is unavailable");
+                    harness_sync_native::managed_profile::Tree::export_bundle(
+                        &generation.join("config/LearnHarness/data"),
+                    )
                 }
                 operation => Ok(serde_json::json!({
                     "error": format!("Operation {operation:?} is not enabled in the read-only managed bridge")

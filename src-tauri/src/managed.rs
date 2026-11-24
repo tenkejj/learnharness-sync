@@ -38,6 +38,83 @@ pub fn snapshot() -> Result<serde_json::Value, String> {
     Ok(value)
 }
 
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+pub fn capture_for_export(
+    consent: bool,
+) -> Result<
+    (
+        harness_sync_native::learnharness_export::ExportManifest,
+        std::collections::BTreeMap<String, Vec<u8>>,
+    ),
+    String,
+> {
+    if !consent {
+        return Err("Confirm before sending real conversation data to the paired device.".into());
+    }
+    use base64::Engine as _;
+    let result = request(harness_sync_native::managed_bridge::Operation::Capture { consent })?;
+    let object = result
+        .as_object()
+        .ok_or("Managed helper returned an invalid export bundle")?;
+    if object.len() != 2 {
+        return Err("Managed helper returned an unsupported export bundle".into());
+    }
+    let manifest: harness_sync_native::learnharness_export::ExportManifest =
+        serde_json::from_value(
+            object
+                .get("manifest")
+                .cloned()
+                .ok_or("Export manifest missing")?,
+        )
+        .map_err(|_| "Managed helper returned an invalid export manifest")?;
+    manifest.validate().map_err(|e| e.to_string())?;
+    let rows = object
+        .get("records")
+        .and_then(serde_json::Value::as_array)
+        .ok_or("Export records missing")?;
+    if rows.len() != manifest.files.len() {
+        return Err("Export inventory is incomplete".into());
+    }
+    let mut payload = std::collections::BTreeMap::new();
+    for row in rows {
+        let row = row.as_object().ok_or("Invalid export record")?;
+        if row.len() != 2 {
+            return Err("Unsupported export record fields".into());
+        }
+        let path = row
+            .get("path")
+            .and_then(serde_json::Value::as_str)
+            .ok_or("Invalid export record path")?
+            .to_owned();
+        let data = row
+            .get("data")
+            .and_then(serde_json::Value::as_str)
+            .ok_or("Invalid export record data")?;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(data)
+            .map_err(|_| "Invalid encoded export record")?;
+        if payload.insert(path, bytes).is_some() {
+            return Err("Duplicate export record path".into());
+        }
+    }
+    harness_sync_native::learnharness_export::verify(&manifest, &payload)
+        .map_err(|e| e.to_string())?;
+    Ok((manifest, payload))
+}
+
+#[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
+pub fn capture_for_export(
+    _consent: bool,
+) -> Result<
+    (
+        harness_sync_native::learnharness_export::ExportManifest,
+        std::collections::BTreeMap<String, Vec<u8>>,
+    ),
+    String,
+> {
+    Err("Managed LearnHarness export requires Linux x86_64".into())
+}
+
 fn validate_snapshot_metadata(value: &serde_json::Value) -> Result<(), String> {
     if value.get("format").and_then(serde_json::Value::as_str)
         != Some("learnharness-0.6.1-disposable-v1")
@@ -145,6 +222,14 @@ fn request_via(
     supervisor_operation: &str,
     qa_probe: bool,
 ) -> Result<serde_json::Value, String> {
+    let timeout_seconds = if matches!(
+        &operation,
+        harness_sync_native::managed_bridge::Operation::Capture { consent: true }
+    ) {
+        180
+    } else {
+        25
+    };
     let source = std::env::current_exe().map_err(|_| "LearnHarness Sync executable unavailable")?;
     let helper = stage_helper(source)?;
     let mut cmd = Command::new("/usr/bin/bash");
@@ -193,7 +278,7 @@ fn request_via(
         let mut client = harness_sync_native::managed_bridge::StdioClient::new(reader, writer);
         let _ = send.send(client.request(operation));
     });
-    let result = match receive.recv_timeout(Duration::from_secs(25)) {
+    let result = match receive.recv_timeout(Duration::from_secs(timeout_seconds)) {
         Ok(result) => {
             result.map_err(|_| "Managed snapshot helper disconnected or timed out".to_string())
         }

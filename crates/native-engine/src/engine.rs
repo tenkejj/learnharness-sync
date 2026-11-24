@@ -223,6 +223,28 @@ impl Engine {
     pub fn local_addr(&self) -> Result<SocketAddr> {
         Ok(self.endpoint.local_addr()?)
     }
+    pub async fn export_managed(
+        &self,
+        peer_id: &str,
+        manifest: crate::learnharness_export::ExportManifest,
+        payload: harness_sync_core::Payload,
+        consent: bool,
+    ) -> Result<Value> {
+        ensure!(
+            consent,
+            "Explicit consent is required before sending real conversation data"
+        );
+        let peer = self
+            .runtime
+            .lock()
+            .unwrap()
+            .settings
+            .peers
+            .get(peer_id)
+            .cloned()
+            .context("Choose a paired trusted device")?;
+        network::export_managed(self, peer, manifest, payload).await
+    }
     pub fn set_discovery(&self, message: &str) {
         self.runtime.lock().unwrap().discovery = message.into();
     }
@@ -500,7 +522,7 @@ impl Engine {
             .map(|d| json!({"id":d.peer.id,"name":d.peer.name,"address":d.peer.address}))
             .collect();
         Ok(
-            json!({"mode":if ledger.initialized {"synthetic"}else{"monitor"},"state":if !ledger.conflicts.is_empty(){"Conflict preserved"}else if ledger.head.is_some(){"Verified isolated history"}else{"Ready to add a device"},"device":r.settings.name,"data_path":path,"detected":self.installation.is_ok(),"head":ledger.head,"sync_test":sync_test,"snapshots":snaps,"backups":backups,"events":ledger.events,"conflicts":ledger.conflicts,"automatic":ledger.initialized,"integration":"Production LearnHarness access disabled","transport_installed":true,"transport":{"state":if peers.iter().any(|p|p["connected"]==true){"connected"}else{"listening"},"device_id":self.identity.id,"peers":peers,"message":r.discovery},"discovered":discovered,"pending":r.pending.values().collect::<Vec<_>>(),"pairing_open":r.pairing_until>now(),"listen_port":self.local_addr()?.port(),"diagnostics":r.errors,"transfer":{"verified_received_bytes":r.verified_received_bytes,"verified_received_objects":r.verified_received_objects},"limitations":[adapter::PRODUCTION_BLOCK,"Same-LAN IPv4 only. Internet traversal and relays are unsupported.","Closing LearnHarness Sync stops syncing. No background daemon is installed.","All committed objects are retained; storage is capped at 1 GiB."]}),
+            json!({"mode":if ledger.initialized {"synthetic"}else{"monitor"},"state":if !ledger.conflicts.is_empty(){"Conflict preserved"}else if ledger.head.is_some(){"Verified isolated history"}else{"Ready to add a device"},"device":r.settings.name,"data_path":path,"detected":self.installation.is_ok(),"head":ledger.head,"sync_test":sync_test,"snapshots":snaps,"backups":backups,"events":ledger.events,"conflicts":ledger.conflicts,"automatic":ledger.initialized,"integration":"LearnHarness 0.6.1 managed export only; received content stays quarantined; production import/apply disabled","transport_installed":true,"transport":{"state":if peers.iter().any(|p|p["connected"]==true){"connected"}else{"listening"},"device_id":self.identity.id,"peers":peers,"message":r.discovery},"discovered":discovered,"pending":r.pending.values().collect::<Vec<_>>(),"pairing_open":r.pairing_until>now(),"listen_port":self.local_addr()?.port(),"diagnostics":r.errors,"transfer":{"verified_received_bytes":r.verified_received_bytes,"verified_received_objects":r.verified_received_objects},"limitations":[adapter::PRODUCTION_BLOCK,"LearnHarness export is restricted to the verified 0.6.1 data profile; unsupported records are refused.","Received LearnHarness data is staged in quarantine and must be applied manually outside this version.","Same-LAN IPv4 only. Internet traversal and relays are unsupported.","Closing LearnHarness Sync stops syncing. No background daemon is installed.","All committed objects are retained; storage is capped at 1 GiB."]}),
         )
     }
     pub async fn request(self: &Arc<Self>, command: &str, args: Value) -> Result<Value> {

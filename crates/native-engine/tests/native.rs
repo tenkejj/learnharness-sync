@@ -3,6 +3,7 @@ use harness_sync_core::{sha256, Decision, Manifest};
 use harness_sync_native::{
     adapter,
     engine::{Engine, Peer},
+    learnharness_export::ExportManifest,
     network,
     storage::{self, Store},
 };
@@ -75,6 +76,117 @@ async fn edit(e: &Arc<Engine>, text: &str) -> String {
         .as_str()
         .unwrap()
         .into()
+}
+
+fn valid_learnharness_payload() -> std::collections::BTreeMap<String, Vec<u8>> {
+    let chat = serde_json::json!({
+        "version":2,"id":"chat_abc123_1234abcd","title":"Disposable export test",
+        "createdAt":"2026-11-24T10:00:00.000Z","updatedAt":"2026-11-24T10:00:00.000Z",
+        "messages":[{"role":"user","id":"msg_abc123_1234abcd","content":"Disposable unicode ✓ conversation","timestamp":1795514400000i64}]
+    });
+    let node = serde_json::json!({
+        "id":"n_export","name":"Export node","statement":"A relationship survives transfer.","aliases":[],
+        "createdAt":"2026-11-24T10:00:00.000Z",
+        "provenance":[{"chatId":"chat_abc123_1234abcd","messageId":"msg_abc123_1234abcd"}]
+    });
+    let chain = serde_json::json!({
+        "id":"arg_export","premises":["n_export"],"conclusion":"n_export",
+        "createdAt":"2026-11-24T10:00:00.000Z",
+        "provenance":[{"chatId":"chat_abc123_1234abcd","messageId":""}]
+    });
+    let rows = [
+        ("chats/chat_abc123_1234abcd.json", serde_json::to_vec(&chat).unwrap()),
+        ("graph/format.json", br#"{"version":1}"#.to_vec()),
+        ("graph/nodes.jsonl", [serde_json::to_vec(&node).unwrap(), b"\n".to_vec()].concat()),
+        ("graph/chains.jsonl", [serde_json::to_vec(&chain).unwrap(), b"\n".to_vec()].concat()),
+        ("graph/coverage.jsonl", [serde_json::to_vec(&serde_json::json!({"chatId":"chat_abc123_1234abcd","fp":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","tokens":1,"foldedAt":"2026-11-24T10:00:00.000Z"})).unwrap(), b"\n".to_vec()].concat()),
+        ("graph/positions.json", br#"{"positions":{"n_export":{"x":1.0,"y":2.0}},"updatedAt":"2026-11-24T10:00:00.000Z"}"#.to_vec()),
+    ];
+    rows.into_iter().map(|(p, b)| (p.to_owned(), b)).collect()
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn managed_export_uses_authenticated_quic_and_stages_without_reconciliation() -> Result<()> {
+    let t = TempDir::new()?;
+    let a = engine(&t, "ManagedA").await;
+    let b = engine(&t, "ManagedB").await;
+    a.trust(peer(&b))?;
+    b.trust(peer(&a))?;
+    let original_b_status = b.status().await?;
+    let payload = valid_learnharness_payload();
+    harness_sync_native::learnharness_export::validate_payload(&payload)?;
+    let receiver_profile = t
+        .path()
+        .join("ManagedB-app-profile/config/LearnHarness/data");
+    storage::private_dir(receiver_profile.parent().unwrap())?;
+    harness_sync_native::managed_profile::Tree::from_records(payload.clone(), None)?
+        .copy_to(&receiver_profile)?;
+    let receiver_profile_before =
+        harness_sync_native::managed_profile::Tree::read(&receiver_profile)?.id()?;
+    let manifest = ExportManifest::from_payload(&payload)?;
+    let revision = manifest.revision.clone();
+    let receipt = a
+        .export_managed(&b.identity.id, manifest, payload.clone(), true)
+        .await?;
+    assert_eq!(receipt["revision"], revision);
+    assert_eq!(receipt["applied"], false);
+    let staged_root = t
+        .path()
+        .join("ManagedB/quarantine/learnharness-0.6.1")
+        .join(&revision);
+    let mut received = std::collections::BTreeMap::new();
+    for path in payload.keys() {
+        received.insert(
+            path.clone(),
+            storage::read(&staged_root.join(path), harness_sync_core::MAX_FILE)?,
+        );
+    }
+    assert_eq!(received, payload);
+    let after_b_status = b.status().await?;
+    assert_eq!(after_b_status["head"], original_b_status["head"]);
+    assert_eq!(after_b_status["snapshots"], original_b_status["snapshots"]);
+    assert!(after_b_status["conflicts"].as_array().unwrap().is_empty());
+    assert_eq!(
+        harness_sync_native::managed_profile::Tree::read(&receiver_profile)?.id()?,
+        receiver_profile_before
+    );
+    // Exact duplicate deliveries are idempotent and still do not reconcile.
+    let duplicate = a
+        .export_managed(
+            &b.identity.id,
+            ExportManifest::from_payload(&payload)?,
+            payload.clone(),
+            true,
+        )
+        .await?;
+    assert_eq!(duplicate["revision"], revision);
+    assert_eq!(b.status().await?["head"], original_b_status["head"]);
+    a.shutdown();
+    b.shutdown();
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn managed_export_requires_sender_consent_and_receiver_trust() -> Result<()> {
+    let t = TempDir::new()?;
+    let a = engine(&t, "ConsentA").await;
+    let b = engine(&t, "ConsentB").await;
+    let payload = valid_learnharness_payload();
+    let manifest = ExportManifest::from_payload(&payload)?;
+    assert!(a
+        .export_managed(&b.identity.id, manifest.clone(), payload.clone(), false)
+        .await
+        .is_err());
+    a.trust(peer(&b))?;
+    // The receiving engine has not trusted A, so TLS alone cannot authorize the export.
+    assert!(a
+        .export_managed(&b.identity.id, manifest, payload, true)
+        .await
+        .is_err());
+    assert!(!t.path().join("ConsentB/quarantine").exists());
+    a.shutdown();
+    b.shutdown();
+    Ok(())
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]

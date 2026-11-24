@@ -8,14 +8,22 @@ export function ManagedSession() {
   const [confirmed, setConfirmed] = useState(false);
   const [statusError, setStatusError] = useState("");
   const [snapshot, setSnapshot] = useState<ManagedSnapshot | null>(null);
+  const [peers, setPeers] = useState<{ id: string; name: string }[]>([]);
+  const [peer, setPeer] = useState("");
+  const [exportConsent, setExportConsent] = useState(false);
+  const [exportReceipt, setExportReceipt] = useState<{ files: number; bytes: number; applied: false } | null>(null);
   const { busy, error, run } = useOperation();
   useEffect(() => {
     let live = true;
     async function refresh() {
       try {
         const value = await command<string>("managed_status");
+        const status = await command<{ transport?: { peers?: { id: string; name: string; trusted?: boolean }[] } }>("status");
+        const paired = (status.transport?.peers ?? []).filter((p) => p.trusted !== false).map(({ id, name }) => ({ id, name }));
         if (live) {
           setState(value);
+          setPeers(paired);
+          setPeer((current) => paired.some((p) => p.id === current) ? current : paired[0]?.id ?? "");
           setStatusError("");
         }
       } catch (e) {
@@ -91,6 +99,24 @@ export function ManagedSession() {
         >
           Check managed snapshot
         </button>
+      )}
+      {state === "saved" && peers.length > 0 && (
+        <div className="managed-export">
+          <label htmlFor="managed-export-peer">Send a verified copy to</label>
+          <select id="managed-export-peer" value={peer} onChange={(e) => { setPeer(e.target.value); setExportReceipt(null); }} disabled={busy}>
+            {peers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <label className="check-row">
+            <input type="checkbox" checked={exportConsent} onChange={(e) => setExportConsent(e.target.checked)} />
+            I authorize sending my managed conversations and supported knowledge graph records to this paired device. The receiver will stage a copy; it will not be applied automatically.
+          </label>
+          <button disabled={busy || !peer || !exportConsent || !!statusError} onClick={() => void run(async () => {
+            const result = await command<{ files: number; bytes: number; applied: false }>("managed_export", { device: peer, consent: true });
+            setExportReceipt(result);
+            setExportConsent(false);
+          })}>Send verified copy</button>
+          {exportReceipt && <p role="status">Transfer verified and staged on the paired device ({exportReceipt.files} files, {exportReceipt.bytes.toLocaleString()} bytes). This is not application-level synchronization; nothing was applied.</p>}
+        </div>
       )}
       {snapshot && (
         <p role="status">

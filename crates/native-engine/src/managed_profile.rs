@@ -112,6 +112,33 @@ impl Tree {
         }))
     }
 
+    /// A consent-gated export response for the isolated helper pipe. The
+    /// helper serializes only validated durable records (settings/credentials
+    /// are excluded) and the regular-user caller rechecks every hash.
+    pub fn export_bundle(root: &Path) -> Result<serde_json::Value> {
+        use base64::Engine as _;
+        let records = Self::records(root)?;
+        let manifest = crate::learnharness_export::ExportManifest::from_payload(&records)?;
+        let encoded: Vec<_> = records
+            .iter()
+            .map(|(path, bytes)| {
+                serde_json::json!({
+                    "path": path,
+                    "data": base64::engine::general_purpose::STANDARD.encode(bytes),
+                })
+            })
+            .collect();
+        let value = serde_json::json!({
+            "manifest": manifest,
+            "records": encoded,
+        });
+        ensure!(
+            serde_json::to_vec(&value)?.len() <= 180 * 1024 * 1024,
+            "Managed export exceeds IPC response limit"
+        );
+        Ok(value)
+    }
+
     pub fn id(&self) -> Result<String> {
         let objects: Vec<_> = self
             .files
@@ -125,7 +152,6 @@ impl Tree {
     }
 
     pub fn copy_to(&self, target: &Path) -> Result<()> {
-        fs::create_dir(target)?;
         private_dir(target)?;
         for dir in &self.directories {
             private_dir(&target.join(dir))?;

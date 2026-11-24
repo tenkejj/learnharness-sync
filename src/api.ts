@@ -27,6 +27,7 @@ export type EngineCommand =
   | "managed_launch"
   | "managed_recover"
   | "managed_snapshot"
+  | "managed_export"
   | "inspect_revision"
   | "inspect_learnharness_backup"
   | "run_sync_test"

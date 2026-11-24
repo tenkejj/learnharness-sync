@@ -3,6 +3,7 @@ pub mod adapter;
 pub mod discovery;
 pub mod engine;
 pub mod identity;
+pub mod learnharness_export;
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub mod managed_bridge;
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
