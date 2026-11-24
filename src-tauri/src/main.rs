@@ -12,6 +12,7 @@ enum Command {
     ManagedStatus,
     ManagedLaunch,
     ManagedRecover,
+    ManagedSnapshot,
     Status,
     Settings,
     SaveSettings,
@@ -41,6 +42,7 @@ impl Command {
             Self::ManagedStatus => "managed_status",
             Self::ManagedLaunch => "managed_launch",
             Self::ManagedRecover => "managed_recover",
+            Self::ManagedSnapshot => "managed_snapshot",
             Self::Status => "status",
             Self::Settings => "settings",
             Self::SaveSettings => "save_settings",
@@ -77,6 +79,11 @@ async fn engine_request(
     args: Value,
 ) -> Result<Value, String> {
     if let Some(op) = command.name().strip_prefix("managed_") {
+        if op == "snapshot" {
+            return tauri::async_runtime::spawn_blocking(managed::snapshot)
+                .await
+                .map_err(|_| "Managed snapshot helper stopped unexpectedly.")?;
+        }
         if op == "recover" && args.get("confirmed") != Some(&Value::Bool(true)) {
             return Err(
                 "Confirm recovery to retain the interrupted session and resume the last saved one."
@@ -115,6 +122,38 @@ async fn smoke_report(
     Ok(())
 }
 fn main() {
+    let bridge_args: Vec<String> = std::env::args().collect();
+    if bridge_args.len() == 2 && bridge_args[1] == "--managed-bridge-stdio" {
+        let stdin = std::io::stdin();
+        let stdout = std::io::stdout();
+        let mut input = stdin.lock();
+        let mut output = stdout.lock();
+        let result = harness_sync_native::managed_bridge::Server::serve_stdio_once(
+            &mut input,
+            &mut output,
+            |operation| match operation {
+                harness_sync_native::managed_bridge::Operation::Snapshot => {
+                    let vault = std::path::Path::new("/capture");
+                    anyhow::ensure!(
+                        std::fs::read(vault.join("active"))? == b"bridge\n",
+                        "Managed capture is not active"
+                    );
+                    let generation = vault.join("generation");
+                    anyhow::ensure!(generation.is_dir(), "Managed generation is unavailable");
+                    let path = generation.join("config/LearnHarness/data");
+                    harness_sync_native::managed_profile::Tree::snapshot_summary(&path)
+                }
+                operation => Ok(serde_json::json!({
+                    "error": format!("Operation {operation:?} is not enabled in the read-only managed bridge")
+                })),
+            },
+        );
+        if let Err(error) = result {
+            eprintln!("Managed bridge refused: {error:#}");
+            std::process::exit(1);
+        }
+        return;
+    }
     // Conservative WebKit rendering avoids the reproducible DMA-BUF protocol
     // failure on the target Linux/Wayland desktop. This changes this process
     // only, before GTK or worker threads start, and respects explicit overrides.
@@ -141,8 +180,35 @@ fn main() {
             return;
         }
     }
+    if std::env::args().nth(1).as_deref() == Some("--managed-snapshot") {
+        match managed::snapshot() {
+            Ok(value) => println!("{value}"),
+            Err(error) => {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
+    // This diagnostic exists only in debug builds so the cross-UID acceptance
+    // test can prove the helper rejects an otherwise well-formed request.
+    #[cfg(debug_assertions)]
+    if std::env::args().nth(1).as_deref() == Some("--managed-bridge-unauthorized-test") {
+        match managed::request(harness_sync_native::managed_bridge::Operation::Status) {
+            Ok(value) if value["error"].as_str().is_some() => {
+                println!("{}", value["error"].as_str().unwrap());
+            }
+            Ok(_) => std::process::exit(2),
+            Err(error) => {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
     let run_smoke = std::env::args().any(|s| s == "--smoke-test");
     let inspect_smoke_backup = std::env::args().any(|s| s == "--smoke-backup");
+    let inspect_managed_snapshot = std::env::args().any(|s| s == "--smoke-managed-snapshot");
     let visual = std::env::args().any(|s| s == "--visual-test");
     let smoke = run_smoke || visual;
     let app = tauri::Builder::default()
@@ -209,11 +275,14 @@ fn main() {
         .on_page_load(move |webview, payload| {
             if run_smoke && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished) {
                 let script = include_str!("smoke.js");
+                let mut prelude = String::new();
                 if inspect_smoke_backup {
-                    let _ = webview.eval(format!("window.__CHECK_TEST_BACKUP__ = true;\n{script}"));
-                } else {
-                    let _ = webview.eval(script);
+                    prelude.push_str("window.__CHECK_TEST_BACKUP__ = true;\n");
                 }
+                if inspect_managed_snapshot {
+                    prelude.push_str("window.__CHECK_MANAGED_SNAPSHOT__ = true;\n");
+                }
+                let _ = webview.eval(format!("{prelude}{script}"));
             }
         })
         .build(tauri::generate_context!())

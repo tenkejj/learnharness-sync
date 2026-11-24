@@ -28,6 +28,21 @@ if [[ $op == recover ]]; then
   fi
   echo recovered; exit
 fi
+if [[ $op == bridge ]]; then
+  [[ $number == 0 && $qa_log == '' && $4 == '' && $5 == /* ]] || { echo 'Invalid bridge request.' >&2; exit 64; }
+  [[ -n $current && ! -e active ]] || { echo 'A saved, idle managed generation is required.' >&2; exit 76; }
+  printf 'bridge\n' > active
+  sync -f .
+  bwrap --die-with-parent --unshare-all --clearenv \
+    --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
+    --ro-bind /helper /helper \
+    --dir /capture --ro-bind "$PWD/active" /capture/active \
+    --ro-bind "$PWD/$current" /capture/generation --chdir /capture \
+    --setenv PATH /usr/bin --setenv LANG C.UTF-8 /helper --managed-bridge-stdio
+  rm -- active
+  sync -f .
+  exit
+fi
 [[ ! -e active ]] || { echo 'Recovery required. The interrupted session has been retained.' >&2; exit 76; }
 run=session.$(cat /proc/sys/kernel/random/uuid)
 printf '%s\n' "$run" > active

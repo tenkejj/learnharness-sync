@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { command } from "./api";
+import { command, type ManagedSnapshot } from "./api";
 import { ErrorNotice } from "./Controls";
 import { useOperation } from "./useEngine";
 
@@ -7,6 +7,7 @@ export function ManagedSession() {
   const [state, setState] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [statusError, setStatusError] = useState("");
+  const [snapshot, setSnapshot] = useState<ManagedSnapshot | null>(null);
   const { busy, error, run } = useOperation();
   useEffect(() => {
     let live = true;
@@ -79,6 +80,23 @@ export function ManagedSession() {
           ? "Recover managed session"
           : "Open managed LearnHarness"}
       </button>
+      {state === "saved" && (
+        <button
+          disabled={busy || !!statusError}
+          onClick={() =>
+            void run(async () => {
+              setSnapshot(await command<ManagedSnapshot>("managed_snapshot"));
+            })
+          }
+        >
+          Check managed snapshot
+        </button>
+      )}
+      {snapshot && (
+        <p role="status">
+          Verified local LearnHarness snapshot: {snapshot.files} files, {snapshot.bytes} bytes.
+        </p>
+      )}
       <ErrorNotice error={error || statusError} />
     </section>
   );

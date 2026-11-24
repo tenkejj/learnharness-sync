@@ -1,13 +1,14 @@
-//! Capability-based IPC for a managed-profile helper.
+//! Bounded one-use IPC for a managed-profile helper.
 //!
-//! A connected Unix socket is passed to the child as an inherited file
-//! descriptor. There is no pathname in the vault, and peer authentication is
-//! the unforgeable descriptor handoff by the spawning coordinator.
+//! Unix sockets support in-process local clients; the production supervisor
+//! uses anonymous stdio pipes inherited by the helper as a one-use capability.
+//! Neither transport creates a pathname in the vault or exposes device keys.
 use anyhow::{ensure, Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
+use std::time::Duration;
 
 const VERSION: u32 = 1;
 const MAX_FRAME: usize = 64 * 1024;
@@ -16,6 +17,7 @@ const MAX_FRAME: usize = 64 * 1024;
 #[serde(tag = "operation", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Operation {
     Status,
+    Snapshot,
     Capture { consent: bool },
     ValidateIncoming { head: String },
     PrepareApply { head: String },
@@ -42,12 +44,51 @@ struct Response {
 
 pub struct Client(UnixStream);
 pub struct Server(UnixStream);
+pub struct StdioClient<R, W> {
+    reader: R,
+    writer: W,
+}
 
 /// Creates an unforgeable, unnamed local channel. The caller must pass the
 /// server endpoint only to the isolated helper and retain the client endpoint.
 pub fn pair() -> Result<(Client, Server)> {
     let (client, server) = UnixStream::pair().context("Could not create managed IPC channel")?;
+    client.set_read_timeout(Some(Duration::from_secs(20)))?;
+    client.set_write_timeout(Some(Duration::from_secs(20)))?;
+    server.set_read_timeout(Some(Duration::from_secs(20)))?;
+    server.set_write_timeout(Some(Duration::from_secs(20)))?;
     Ok((Client(client), Server(server)))
+}
+
+/// Take ownership of the fixed inherited socket descriptor used by the
+/// supervisor. It must refer to a connected AF_UNIX stream socket.
+///
+/// # Safety
+/// Descriptor 3 must be open, exclusively handed to this process, and not used
+/// after this function takes ownership.
+pub unsafe fn server_from_fd(fd: i32) -> Result<Server> {
+    use std::os::fd::FromRawFd;
+    ensure!(
+        fd == 3,
+        "Managed helper accepts only its fixed IPC descriptor"
+    );
+    let mut kind: libc::c_int = 0;
+    let mut length = std::mem::size_of_val(&kind) as libc::socklen_t;
+    ensure!(
+        libc::getsockopt(
+            fd,
+            libc::SOL_SOCKET,
+            libc::SO_TYPE,
+            &mut kind as *mut _ as *mut _,
+            &mut length
+        ) == 0
+            && kind == libc::SOCK_STREAM,
+        "Managed helper received an invalid IPC descriptor"
+    );
+    let stream = UnixStream::from_raw_fd(fd);
+    stream.set_read_timeout(Some(Duration::from_secs(20)))?;
+    stream.set_write_timeout(Some(Duration::from_secs(20)))?;
+    Ok(Server(stream))
 }
 
 impl Client {
@@ -71,7 +112,39 @@ impl Client {
     }
 }
 
+impl<R: Read, W: Write> StdioClient<R, W> {
+    pub fn new(reader: R, writer: W) -> Self {
+        Self { reader, writer }
+    }
+
+    pub fn request(&mut self, operation: Operation) -> Result<Value> {
+        if matches!(operation, Operation::Capture { consent: false }) {
+            anyhow::bail!("Explicit consent is required before exporting conversations");
+        }
+        let id = crate::storage::nonce()?;
+        write_frame(
+            &mut self.writer,
+            &serde_json::to_vec(&Request {
+                version: VERSION,
+                id: id.clone(),
+                operation,
+            })?,
+        )?;
+        let response: Response = serde_json::from_slice(&read_frame(&mut self.reader)?)?;
+        ensure!(
+            response.version == VERSION && response.id == id,
+            "Managed helper response did not match this request"
+        );
+        Ok(response.result)
+    }
+}
+
 impl Server {
+    pub fn into_raw_fd(self) -> std::os::fd::RawFd {
+        use std::os::fd::IntoRawFd;
+        self.0.into_raw_fd()
+    }
+
     /// Handles one request then closes the protocol. A fresh capability is
     /// created for every managed operation so a stale helper cannot replay it.
     pub fn serve_once<F>(mut self, operation: F) -> Result<()>
@@ -98,9 +171,45 @@ impl Server {
             })?,
         )
     }
+
+    pub fn serve_stdio_once<R: Read, W: Write, F>(
+        reader: &mut R,
+        writer: &mut W,
+        operation: F,
+    ) -> Result<()>
+    where
+        F: FnOnce(Operation) -> Result<Value>,
+    {
+        serve_one(reader, writer, operation)
+    }
 }
 
-fn write_frame(stream: &mut UnixStream, bytes: &[u8]) -> Result<()> {
+fn serve_one<R: Read, W: Write, F>(reader: &mut R, writer: &mut W, operation: F) -> Result<()>
+where
+    F: FnOnce(Operation) -> Result<Value>,
+{
+    let request: Request = serde_json::from_slice(&read_frame(reader)?)?;
+    ensure!(
+        request.version == VERSION
+            && request.id.len() == 64
+            && request.id.bytes().all(|b| b.is_ascii_hexdigit()),
+        "Invalid managed IPC request"
+    );
+    if matches!(request.operation, Operation::Capture { consent: false }) {
+        anyhow::bail!("Explicit consent is required before exporting conversations");
+    }
+    let result = operation(request.operation)?;
+    write_frame(
+        writer,
+        &serde_json::to_vec(&Response {
+            version: VERSION,
+            id: request.id,
+            result,
+        })?,
+    )
+}
+
+fn write_frame<W: Write>(stream: &mut W, bytes: &[u8]) -> Result<()> {
     ensure!(
         !bytes.is_empty() && bytes.len() <= MAX_FRAME,
         "Managed IPC frame exceeds limit"
@@ -111,7 +220,7 @@ fn write_frame(stream: &mut UnixStream, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 
-fn read_frame(stream: &mut UnixStream) -> Result<Vec<u8>> {
+fn read_frame<R: Read>(stream: &mut R) -> Result<Vec<u8>> {
     let mut length = [0u8; 4];
     stream.read_exact(&mut length)?;
     let length = u32::from_be_bytes(length) as usize;

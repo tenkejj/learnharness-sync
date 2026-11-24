@@ -3,6 +3,13 @@
   const cmd = (command, args = {}) => invoke("engine_request", { command, args });
   const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
   try {
+    let managedSnapshot = null;
+    if (window.__CHECK_MANAGED_SNAPSHOT__) {
+      managedSnapshot = await cmd("managed_snapshot");
+      if (managedSnapshot.format !== "learnharness-0.6.1-disposable-v1" || !/^[a-f0-9]{64}$/.test(managedSnapshot.digest)) {
+        throw Error("Managed subordinate-UID snapshot unavailable through Tauri command");
+      }
+    }
     const before = await cmd("status");
     if (!/^[a-f0-9]{64}$/.test(before.transport.device_id)) throw Error("Native identity missing");
     if (before.transport.peers.length) throw Error("Fresh profile contains peers");
@@ -54,7 +61,7 @@
       const current = await cmd("status");
       if (current.head !== after.head || current.snapshots.length !== after.snapshots.length) throw Error("Inspection changed sync history");
     }
-    await invoke("smoke_report", { report: { ok: true, backup_inspection: !!window.__CHECK_TEST_BACKUP__, installation, identity: before.transport.device_id, snapshot: after.head, native_commands: true, production_refused: true, offline_test_refused: true, preserved_note: true, navigation_destinations: 3, packaged_font: true, devices_ui: true, add_device_action: true, pairing_dismissal: true, settings_ui: true } });
+    await invoke("smoke_report", { report: { ok: true, backup_inspection: !!window.__CHECK_TEST_BACKUP__, managed_snapshot: managedSnapshot, installation, identity: before.transport.device_id, snapshot: after.head, native_commands: true, production_refused: true, offline_test_refused: true, preserved_note: true, navigation_destinations: 3, packaged_font: true, devices_ui: true, add_device_action: true, pairing_dismissal: true, settings_ui: true } });
   } catch (e) {
     await invoke("smoke_report", { report: { ok: false, error: String(e) } });
   }

@@ -5,7 +5,13 @@ op=$1 worker=$2
 fail() { print_error="$1"; printf '%s\n' "$print_error" >&2; exit 1; }
 base=${XDG_DATA_HOME:-$HOME/.local/share}/io.github.tenkejj.learnharness-sync/managed
 [[ $base == /* && $HOME == /* ]] || fail 'An absolute data directory is required.'
-case "$op" in status|launch|recover) ;; *) exit 64 ;; esac
+case "$op" in status|launch|recover|bridge) ;; *) exit 64 ;; esac
+mounts=()
+helper=${3:-}
+if [[ $op == bridge ]]; then
+  [[ $helper == /* && -f $helper && ! -L $helper ]] || fail 'Invalid managed bridge launch.'
+  mounts=(--ro-bind "$helper" /helper)
+fi
 if [[ ! -e $base/slot && $op == status ]]; then echo new; exit; fi
 mkdir -p -m 700 -- "$base"
 [[ ! -L $base && $(stat -c '%u:%a' "$base") == "$(id -u):700" ]] || fail 'Managed storage is not private.'
@@ -14,7 +20,6 @@ mkdir -p -m 700 -- "$base"
 # able to create its private vault through the directory bind mount.
 mkdir -m 733 -- "$base/slot" 2>/dev/null || [[ -d $base/slot ]]
 [[ ! -L $base/slot && $(stat -c '%u:%a' "$base/slot") == "$(id -u):733" ]] || fail 'Invalid managed storage entrance.'
-mounts=()
 displaynum=0
 if [[ $op == launch ]]; then
   source=$HOME/Applications/LearnHarness-0.6.1-x86_64.AppImage
@@ -67,4 +72,4 @@ unshare --user --map-auto --map-root-user --mount --propagation private \
   --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
   --dir /etc --ro-bind /etc/fonts /etc/fonts --proc /proc --dev /dev --tmpfs /tmp \
   --bind "$base/slot" /slot "${mounts[@]}" --setenv PATH /usr/bin --setenv LANG C.UTF-8 \
-  setpriv --reuid=1 --regid=1 --clear-groups bash -c "$worker" worker "$op" "$displaynum" "${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-}"
+  setpriv --reuid=1 --regid=1 --clear-groups bash -c "$worker" worker "$op" "$displaynum" "${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-}" "" "$helper"

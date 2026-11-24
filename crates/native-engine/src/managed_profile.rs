@@ -75,6 +75,22 @@ impl Tree {
         Ok(tree.files)
     }
 
+    pub fn snapshot_summary(root: &Path) -> Result<serde_json::Value> {
+        let tree = Self::read(root)?;
+        let mut records = tree.files.clone();
+        records.remove("settings.json");
+        let bytes = records
+            .values()
+            .map(|value| value.len() as u64)
+            .sum::<u64>();
+        Ok(serde_json::json!({
+            "format": harness_sync_core::learnharness_061::FORMAT,
+            "digest": tree.id()?,
+            "files": records.len(),
+            "bytes": bytes,
+        }))
+    }
+
     pub fn id(&self) -> Result<String> {
         let objects: Vec<_> = self
             .files

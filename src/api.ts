@@ -15,10 +15,17 @@ export type Configuration = {
   installation: string;
   production_mutation: false;
 };
+export type ManagedSnapshot = {
+  format: string;
+  digest: string;
+  files: number;
+  bytes: number;
+};
 export type EngineCommand =
   | "managed_status"
   | "managed_launch"
   | "managed_recover"
+  | "managed_snapshot"
   | "inspect_revision"
   | "inspect_learnharness_backup"
   | "run_sync_test"
