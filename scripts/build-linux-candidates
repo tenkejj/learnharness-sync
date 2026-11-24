@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Rust panic locations and native dependency assertions can embed build paths.
+set -eu
+root=$(cd "$(dirname "$0")/.." && pwd -P)
+cd "$root"
+# Longest/most specific matching prefix should take precedence (rustc uses the last).
+export CARGO_ENCODED_RUSTFLAGS="${CARGO_ENCODED_RUSTFLAGS:+$CARGO_ENCODED_RUSTFLAGS$'\x1f'}--remap-path-prefix=$HOME=/build/user"$'\x1f'"--remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/build/cargo"$'\x1f'"--remap-path-prefix=$root=/build/harness-sync"
+export CFLAGS="${CFLAGS:-} -ffile-prefix-map=$HOME=/build/user"
+export CXXFLAGS="${CXXFLAGS:-} -ffile-prefix-map=$HOME=/build/user"
+npm run tauri -- build --bundles appimage,deb,rpm -- --locked
+# Tauri retains the display name in its output. Publish portable filenames.
+for dest in target/release/bundle/{appimage,deb,rpm}/'LearnHarness Sync'[_-]*; do
+  [[ -f $dest ]] || continue
+  mv -- "$dest" "${dest/LearnHarness Sync/LearnHarness-Sync}"
+done
+version=$(node -p "require('./package.json').version")
+assets=(
+  "appimage/LearnHarness-Sync_${version}_amd64.AppImage"
+  "deb/LearnHarness-Sync_${version}_amd64.deb"
+  "rpm/LearnHarness-Sync-${version}-1.x86_64.rpm"
+)
+(
+  cd target/release/bundle
+  sha256sum "${assets[@]}" > SHA256SUMS
+)

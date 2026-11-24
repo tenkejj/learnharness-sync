@@ -1,0 +1,31 @@
+[package]
+name = "harness-sync-native"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+harness-sync-core = { path = "../sync-core" }
+anyhow = "1"
+base64 = "0.22"
+fs2 = "0.4"
+libc = "0.2"
+mdns-sd = "0.22"
+if-addrs = "0.15"
+quinn = { version = "0.11.12", default-features = false, features = ["runtime-tokio", "rustls-ring"] }
+rcgen = { version = "0.14.10", default-features = false, features = ["ring", "crypto"] }
+ring = "0.17"
+rustls = { version = "0.23.46", default-features = false, features = ["std", "ring"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "io-util", "net", "signal"] }
+x509-parser = "0.18"
+
+[dev-dependencies]
+tempfile = "3"
+
+[features]
+learnharness-qa = ["harness-sync-core/learnharness-qa"]
+
+[target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
+rustix = { version = "1", features = ["fs"] }

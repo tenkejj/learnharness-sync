@@ -1,0 +1,89 @@
+{
+  "candidates": [
+    {
+      "artifact": "target/release/bundle/appimage/HarnessSync_0.1.0-beta_amd64.AppImage",
+      "bytes": 110139896,
+      "sha256": "39a5f1d45baec3a93535a95e2dbfe9c5cd419d14aac02e58cc7b5faf61967771",
+      "extracted_regular_files": 420,
+      "external_engine_or_private_state_files": false,
+      "targeted_credentials_found": false,
+      "reviewed_false_positives": [
+        {
+          "file": "squashfs-root/usr/lib/libunistring.so.5",
+          "offset": 972850,
+          "reason": "Manually reviewed public Unicode-name dictionary words; not a credential",
+          "sha256": "9be222982d717cd29b2ce262b4f7410bd2601725563bb2df4b3517f5fab2d199"
+        },
+        {
+          "file": "squashfs-root/usr/lib/libgnutls.so.30",
+          "offset": 1763904,
+          "reason": "Public GnuTLS cryptographic self-test vector; exact match verified against official upstream source",
+          "match_sha256": "8f7e981b1bf5ea40670d1215da5c92c7bcce577ea8296720cc0ea183f47d6503",
+          "source": "https://github.com/gnutls/gnutls/blob/master/lib/crypto-selftests-pk.c"
+        },
+        {
+          "file": "squashfs-root/usr/lib/libgnutls.so.30",
+          "offset": 1764160,
+          "reason": "Public GnuTLS cryptographic self-test vector; exact match verified against official upstream source",
+          "match_sha256": "5ddf905c9d54ece0fe06ae61c74ca76af2a9a800f57637978eb6e37f9d3f2ce5",
+          "source": "https://github.com/gnutls/gnutls/blob/master/lib/crypto-selftests-pk.c"
+        },
+        {
+          "file": "squashfs-root/usr/lib/libgnutls.so.30",
+          "offset": 1766816,
+          "reason": "Public GnuTLS cryptographic self-test vector; exact match verified against official upstream source",
+          "match_sha256": "effa052b9d20c73aa9aca90486f5d1cb32662e909d841d4049afe9a00b46d8da",
+          "source": "https://github.com/gnutls/gnutls/blob/master/lib/crypto-selftests-pk.c"
+        },
+        {
+          "file": "squashfs-root/usr/lib/libgnutls.so.30",
+          "offset": 1767040,
+          "reason": "Public GnuTLS cryptographic self-test vector; exact match verified against official upstream source",
+          "match_sha256": "0200ea14848fe59717c21a32ba6d7f8000a688b0e57b06b3bd515528f97f6d07",
+          "source": "https://github.com/gnutls/gnutls/blob/master/lib/crypto-selftests-pk.c"
+        },
+        {
+          "file": "squashfs-root/usr/lib/libgnutls.so.30",
+          "offset": 1767200,
+          "reason": "Public GnuTLS cryptographic self-test vector; exact match verified against official upstream source",
+          "match_sha256": "d34730e61db9f0788eb86bfd04f5c69d11713b16d834d28ca95782ec361a408c",
+          "source": "https://github.com/gnutls/gnutls/blob/master/lib/crypto-selftests-pk.c"
+        },
+        {
+          "file": "squashfs-root/usr/lib/libgnutls.so.30",
+          "offset": 1768032,
+          "reason": "Public GnuTLS cryptographic self-test vector; exact match verified against official upstream source",
+          "match_sha256": "6b5f7abf3daad2dee80976d65b8576f38b64d2a1618589f27a2877a26aac2714",
+          "source": "https://github.com/gnutls/gnutls/blob/master/lib/crypto-selftests-pk.c"
+        },
+        {
+          "file": "squashfs-root/usr/lib/libgnutls.so.30",
+          "offset": 1769952,
+          "reason": "Public GnuTLS cryptographic self-test vector; exact match verified against official upstream source",
+          "match_sha256": "1e4ef7695765f411b0b2c282757d8ba6dfe3379538d03b2a092b37537b726c9c",
+          "source": "https://github.com/gnutls/gnutls/blob/master/lib/crypto-selftests-pk.c"
+        }
+      ]
+    },
+    {
+      "artifact": "target/release/bundle/deb/HarnessSync_0.1.0-beta_amd64.deb",
+      "bytes": 6535212,
+      "sha256": "6e9a44a4e6bd1edd8ec284e9b3d48c35a0c8347166cb2472466e6982e139905f",
+      "extracted_regular_files": 7,
+      "external_engine_or_private_state_files": false,
+      "targeted_credentials_found": false,
+      "reviewed_false_positives": []
+    },
+    {
+      "artifact": "target/release/bundle/rpm/HarnessSync-0.1.0-beta-1.x86_64.rpm",
+      "bytes": 6540540,
+      "sha256": "eda2fccad83bde0ae77747322ba95799eee3e94614f9d1535a885326e29b1bc8",
+      "extracted_regular_files": 6,
+      "external_engine_or_private_state_files": false,
+      "targeted_credentials_found": false,
+      "reviewed_false_positives": []
+    }
+  ],
+  "scope": "targeted filenames and common credential patterns; not exhaustive certification",
+  "installed": false
+}

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Opt-in read-only wrapper template. Does not prove child process quiescence.
+# The original application is launched even if inspection fails. No import/export.
+set -u
+if [[ $# -eq 0 ]]; then
+  echo 'Usage: learnharness-preflight /absolute/path/to/original-launcher [args...]' >&2
+  exit 2
+fi
+python -m harness_sync status >/dev/null 2>&1 || true
+exec -- "$@"

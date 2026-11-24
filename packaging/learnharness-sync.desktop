@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=LearnHarness Sync
+Comment=Private, local-first sync for LearnHarness
+Exec=learnharness-sync
+Icon=learnharness-sync
+Terminal=false
+Categories=Utility;

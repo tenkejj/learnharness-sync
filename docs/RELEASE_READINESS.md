@@ -1,0 +1,16 @@
+# Linux release status
+
+LearnHarness Sync is an experimental source project. Binary publication remains gated on production qualification. The desktop supports a dedicated offline managed window, read-only Btrfs inspection and authenticated test transfers. The integration suite covers real LearnHarness 0.6.1 transcript and graph round trips. Public beta qualification requires a supported provider, explicit consent for real-data sharing, verified application of received data through the ordinary desktop, physical-device acceptance and dependency reviews. [Managed sessions](MANAGED_LINUX.md) · [Name and artwork](NAME_SCREEN.md)
+
+## Local install and dependency checks
+
+The AppImage runs in direct and extraction modes. The DEB and RPM tests launch the previous 0.1.0-beta build and the renamed 0.2.0-alpha.1 build in disposable Ubuntu 24.04.5 and Fedora 44 environments. They preserve the generated identity, trust store, ledger, objects, manifests and backups byte-for-byte. The new package uses `io.github.tenkejj.learnharness-sync` while deliberately opening the established native store at the legacy internal path. No duplicate store is created. Physical hardware acceptance remains open.
+
+The earlier picomatch advisory was withdrawn on November 18. The subsequent full and production-only npm audits reported no vulnerabilities. The private build retains the locked dependency versions. [Advisory disposition](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+
+The locked Cargo graph has 487 packages with declared license expressions. The AppImage review identified 164 top-level shared libraries. Its components include GTK, WebKitGTK, GnuTLS, GLib and libunistring. The package indexes provide initial license attribution. Verifying the exact bundled versions, corresponding source and license notices for binary redistribution is still open. RustSec reports and extracted artifact credential scans address separate questions. The standalone LearnHarness AppImage and its source are excluded from this project.
+
+
+On November 23 the RustSec audit flagged `cookie 0.18.2` and `url 2.5.8`. The lockfile now uses `cookie 0.18.3`, `url 2.5.9` and `form_urlencoded 1.2.3`. A repeat audit against database commit `52384ab5581a4487b62c549eef95cf7ba7e8bad5` reported zero vulnerabilities. Warnings remain for chrono, proc-macro-error and glib. [Cookie advisory](https://rustsec.org/advisories/RUSTSEC-2026-0594.html) · [URL advisory](https://rustsec.org/advisories/RUSTSEC-2026-0592.html) · [GLib advisory](https://rustsec.org/advisories/RUSTSEC-2024-0429.html)
+
+The November 23 candidate contains 197 regular ELF files in its extracted AppImage. The build-host inventory associated 195 with 105 Arch packages by matching SHA-256 or GNU build ID. Two matches were byte-for-byte. The remaining two executables are the project application and the AppRun launcher, which matches the packaging cache by SHA-256. The inventory records the bundled digest, matching host version and package-declared licenses. These matches identify components for notice and source review. The outer AppImage runtime, embedded non-ELF resources and corresponding-source obligations require separate review. Run `python scripts/appimage_elf_inventory.py <built-AppImage>` on the original Arch build host to regenerate the inventory.

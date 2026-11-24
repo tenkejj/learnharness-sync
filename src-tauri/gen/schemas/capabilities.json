@@ -1,0 +1,1 @@
+{"main":{"identifier":"main","description":"Local main window may invoke the bounded native engine and receive its status events.","local":true,"windows":["main"],"permissions":["core:event:default","allow-engine-request","allow-smoke-report"]}}

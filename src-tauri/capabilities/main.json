@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "Local main window may invoke the bounded native engine and receive its status events.",
+  "windows": ["main"],
+  "permissions": ["core:event:default", "allow-engine-request", "allow-smoke-report"]
+}

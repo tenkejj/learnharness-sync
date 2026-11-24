@@ -1,0 +1,18 @@
+{
+  "discovery": true,
+  "devices": [
+    {
+      "name": "LAN-Desktop",
+      "nearby": [
+        "LAN-Laptop"
+      ]
+    },
+    {
+      "name": "LAN-Laptop",
+      "nearby": [
+        "LAN-Desktop"
+      ]
+    }
+  ],
+  "physical_devices": false
+}

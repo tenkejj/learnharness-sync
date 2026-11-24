@@ -1,0 +1,5 @@
+# Project name and attribution
+
+The owner selected **LearnHarness Sync**. A GitHub repository-name search returned zero exact-name matches before publication on November 23, 2026. The Canadian Intellectual Property Office trademark-field search for “LearnHarness Sync” returned zero results. The upstream 0.6.1 release tree includes software licenses. No standalone trademark permission or brand policy was identified in that tree.
+
+“LearnHarness” describes the compatible upstream application. This independent project uses an owner-authorized, AI-generated mark with stacked sheets. Both icons use an orbit and circles. The unofficial attribution appears in the application, README and repository description. The exact-name searches do not establish legal clearance or trademark ownership. Confusingly similar marks and US/EU registrations have not been cleared. [Upstream project](https://github.com/amosblomqvist/learnharness) · [Canadian Trademarks Database](https://ised-isde.canada.ca/cipo/trademark-search/srch) · [Project artwork notice](../NOTICE)

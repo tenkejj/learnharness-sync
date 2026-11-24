@@ -1,0 +1,31 @@
+npm notice run harness-sync@0.1.0-beta test
+npm notice run node tests/frontend.test.mjs
+✔ engine offline is an error, never a synthetic success (1.405985ms)
+✔ native response is projected without injecting peers (0.766404ms)
+✔ unexpected native content is rejected (0.20438ms)
+✔ unapplied head stays explicit (0.153684ms)
+✔ malformed status shapes cannot reach the render tree (0.241451ms)
+✔ offline failure includes local recovery guidance (0.145197ms)
+✔ native command sends bounded JSON envelope without HTTP (0.28765ms)
+✔ explicit safety refusal cannot turn into success (0.205532ms)
+✔ unverifiable native failure reports uncertain outcome (0.278041ms)
+✔ oversized command is rejected before invocation (0.464567ms)
+✔ malformed snapshots cannot imply verification (0.201945ms)
+✔ real pairing and discovery fields are retained (0.29309ms)
+✔ unknown creation time is not fabricated (0.105642ms)
+✔ production frontend has no HTTP bridge or obsolete credentials (0.265877ms)
+✔ Home distinguishes first launch, connected and offline without user navigation (0.281788ms)
+✔ local and remote names cannot both be This computer (0.117725ms)
+✔ connectivity and a past test never substitute for matching remote evidence (0.118927ms)
+✔ malformed receipts and test results are refused (0.271068ms)
+✔ failed native test is retained as failure, never rewritten to success (0.143615ms)
+✔ native event validation and unsubscription remain intact (0.204922ms)
+✔ activity disclosure keys remain stable when new events arrive (0.162199ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29.533136

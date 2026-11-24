@@ -1,0 +1,25 @@
+{
+  "not_covered": [
+    "actual LearnHarness writer exclusion",
+    "power loss",
+    "installer/native lifecycle",
+    "network fault injection during one payload",
+    "Windows/macOS user flow"
+  ],
+  "passed": [
+    "two isolated real Syncthing processes paired over TCP loopback",
+    "A export -> actual Syncthing transfer -> verified B bootstrap with backup",
+    "B change -> actual Syncthing transfer -> A fast-forward",
+    "offline local continuation and delayed reconnection delivery",
+    "concurrent edits preserve both transferred branches and refuse overwrite"
+  ],
+  "production_ready": false,
+  "state": "passed_synthetic_p2p_only",
+  "transport": "real-syncthing-tcp",
+  "origin": "owner-executed report supplied in conversation and read locally",
+  "reproduced_by_current_agent": false,
+  "tool_versions_owner_reported": {
+    "syncthing": "2.1.7",
+    "rust": "1.100.0"
+  }
+}

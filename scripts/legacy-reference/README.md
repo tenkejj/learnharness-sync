@@ -1,0 +1,1 @@
+Historical Python/Syncthing development helpers. These are not maintained install/build paths and must not be used to build the native application. The Python package and its 72 regression tests remain as behavioral reference only. The desktop never imports or starts them.

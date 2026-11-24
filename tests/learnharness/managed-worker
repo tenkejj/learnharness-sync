@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# Invoked only by the disposable outer test namespace as a subordinate UID.
+set -eu
+umask 077
+tmp=/slot/vault
+xserver=/Xvfb
+if [[ $1 == init ]]; then
+  mkdir -m 700 "$tmp"
+  mkdir -m 700 "$tmp"/{A,B,C,D,E}
+  exit
+fi
+[[ ! -L $tmp && $(stat -c '%u:%a' "$tmp") == "$(id -u):700" ]]
+exec 9<"$tmp"
+flock -E 75 -n 9 || {
+  rc=$?
+  if [[ $rc == 75 ]]; then echo "Close managed LearnHarness before $1" >&2; fi
+  exit "$rc"
+}
+if [[ $1 == cleanup ]]; then
+  rm -rf -- "$tmp"
+  exit
+fi
+# A killed supervisor leaves this record. Recovery requires a separate inspection.
+if [[ -e $tmp/active ]]; then echo 'Interrupted profile operation' >&2; exit 76; fi
+printf '%s\n' "$1" >"$tmp/active"
+sync -f "$tmp"
+desktop() {
+    local phase=$1 label=$2
+    timeout 100 bwrap --die-with-parent --unshare-all --clearenv \
+      --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
+      --proc /proc --dev /dev --tmpfs /tmp --dir /etc --ro-bind /etc/fonts /etc/fonts \
+      --ro-bind "/tests/provider.mjs" /provider.mjs --ro-bind "$xserver" /Xvfb --ro-bind "/app" /app \
+      --ro-bind "/node_modules" /node_modules --ro-bind "/tests/probe.mjs" /probe.mjs \
+      --bind "$tmp/$label" /profile --chdir /profile --setenv HOME /profile \
+      --setenv PATH /usr/bin --setenv DISPLAY :71 --setenv LANG C.UTF-8 \
+      --setenv XDG_RUNTIME_DIR /tmp/runtime --setenv XDG_CONFIG_HOME /profile/config \
+      --setenv XDG_CACHE_HOME /profile/cache --setenv XDG_DATA_HOME /profile/data \
+      --setenv XDG_STATE_HOME /profile/state --ro-bind /tests/window /window /bin/bash /window "$phase" "$label"
+}
+
+transfer() {
+  local source=$1 target=$2
+  # Closed, generated data only. No host filesystem, session sockets or external network.
+  timeout 90 bwrap --die-with-parent --unshare-all --clearenv --setenv PATH /usr/bin \
+    --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
+    --tmpfs /tmp --proc /proc --dev /dev --bind "$tmp" /lab --chdir /lab \
+    --ro-bind "/peer" /peer --ro-bind "/peer-lab.mjs" /native-peer-lab.mjs \
+    --ro-bind "/tests/transfer.mjs" /transfer.mjs node /transfer.mjs "$source" "$target" "${3:-}"
+  if [[ -n ${3:-} ]]; then return; fi
+  # A new process reconstructs the transaction from its durable intent.
+  local dest="$tmp/$target/config/LearnHarness/data"
+  transaction() {
+    bwrap --die-with-parent --unshare-all --clearenv --ro-bind /usr /usr \
+      --symlink usr/lib /lib --symlink usr/lib /lib64 --proc /proc --dev /dev \
+      --bind "$tmp" /lab --ro-bind /peer /peer /peer --qa-transaction "$1" "$target"
+  }
+  if [[ $source == C && $target == D ]]; then
+    bwrap --die-with-parent --unshare-all --clearenv --setenv PATH /usr/bin \
+      --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --proc /proc --dev /dev \
+      --size 2097152 --tmpfs /lab --ro-bind "$dest" /existing --ro-bind "$tmp/$target/received" /incoming \
+      --ro-bind /tests/faults.py /faults.py --ro-bind /peer /peer python /faults.py
+  fi
+  transaction prepare
+  local rc=0
+  transaction interrupt || rc=$?
+  [[ $rc == 137 ]]
+  # A fresh process restores from the independent backup.
+  transaction recover
+  transaction prepare
+  transaction activate
+  transaction finish
+  for oracle in expected.json transcript-id expected-transcript.json; do
+    if [[ -f "$tmp/$source/$oracle" ]]; then cp "$tmp/$source/$oracle" "$tmp/$target/$oracle"; fi
+  done
+}
+
+case "$1" in
+  desktop)
+    echo 'Managed desktop acquired'
+    desktop "$2" "$3" 9<&-
+    if [[ $2 == reopen || $2 == verify-transcript ]]; then
+      bwrap --die-with-parent --unshare-all --clearenv --ro-bind /usr /usr \
+        --symlink usr/lib /lib --symlink usr/lib /lib64 --proc /proc --dev /dev \
+        --bind "$tmp" /lab --ro-bind /peer /peer /peer --qa-transaction confirm "$3"
+    fi
+    ;;
+  transfer) transfer "$2" "$3" "${4:-}" 9<&- ;;
+  migrate)
+    bwrap --die-with-parent --unshare-all --clearenv --ro-bind /usr /usr \
+      --symlink usr/lib /lib --symlink usr/lib /lib64 --proc /proc --dev /dev \
+      --bind "$tmp" /lab --ro-bind /source /source --ro-bind /peer /peer /peer --qa-transaction migrate E
+    cp /expected-id "$tmp/E/transcript-id"
+    cp /expected-transcript "$tmp/E/expected-transcript.json"
+    ;;
+
+  *) exit 64 ;;
+esac
+rm -- "$tmp/active"
+sync -f "$tmp"
+flock -u 9

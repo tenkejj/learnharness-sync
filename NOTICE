@@ -1,0 +1,33 @@
+LearnHarness Sync source is independently written and licensed under MIT.
+LearnHarness is a separate project. This unofficial companion is not endorsed
+by LearnHarness. No production format compatibility is certified.
+
+The approved LearnHarness Sync logo was generated specifically for the project owner
+using OpenAI's ChatGPT image generation. The owner authorizes redistribution of
+the supplied PNG, derived icons and screenshots showing the logo as part of this
+project, its repository, documentation and release packages. Branding is separate
+project artwork. The MIT software license grants no trademark rights. The owner
+makes no claim of registered trademark status or exclusive rights beyond
+applicable law.
+
+LearnHarness identifies the upstream application. The name is used to describe
+compatibility. All third-party marks belong to their respective owners.
+
+Runtime dependencies retain their own licenses: Tauri (MIT/Apache-2.0),
+Quinn (MIT/Apache-2.0), rustls (Apache-2.0/ISC/MIT), ring (ISC/MIT/OpenSSL
+notices within its distribution), rcgen (MIT/Apache-2.0), mdns-sd
+(Apache-2.0/MIT), Tokio (MIT), serde/serde_json/sha2 (their package licenses),
+React/React DOM (MIT), Lucide (ISC). Review the exact locked transitive dependency
+licenses and security advisories before distribution. GTK/WebKit and bundled
+AppImage libraries have their own notices and redistribution obligations.
+
+Python, CPython, PyInstaller, Syncthing and Iroh are not native runtime or
+installer dependencies. Historical Python reference source remains in this
+repository, outside the production build. Public distribution, signing,
+installer qualification and bundled-library redistribution remain release gates.
+
+Manrope font: Copyright 2018 The Manrope Project Authors
+(https://github.com/googlefonts/manrope), SIL Open Font License 1.1.
+Unmodified variable font and full license are packaged in public/fonts/.
+Font source: https://github.com/google/fonts/tree/main/ofl/manrope
+No remote font service is used at runtime.

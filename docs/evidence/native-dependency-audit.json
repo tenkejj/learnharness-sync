@@ -1,0 +1,26 @@
+{
+  "known_vulnerabilities": 0,
+  "warnings": [
+    {
+      "kind": "unmaintained",
+      "package": "chrono",
+      "version": "0.4.45",
+      "advisory": "RUSTSEC-2026-0543",
+      "title": "chrono is unmaintained"
+    },
+    {
+      "kind": "unmaintained",
+      "package": "proc-macro-error",
+      "version": "1.0.4",
+      "advisory": "RUSTSEC-2024-0370",
+      "title": "proc-macro-error is unmaintained"
+    },
+    {
+      "kind": "unsound",
+      "package": "glib",
+      "version": "0.18.5",
+      "advisory": "RUSTSEC-2024-0429",
+      "title": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`"
+    }
+  ]
+}

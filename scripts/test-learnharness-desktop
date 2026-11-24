@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# Linux QA only. Never mount an existing user profile, display or session bus.
+set -eu
+repo=$(cd "$(dirname "$0")/.." && pwd)
+image=$(realpath "${1:?Supply the official 0.6.1 x86_64 AppImage}")
+xserver=$(realpath "${2:-$(command -v Xvfb)}")
+digest=b8a033eb7421677893d96e4988b30153fdfe4fc6f0dc456f7947161bba041b98
+tmp=$(mktemp -d)
+trap 'rm -rf -- "$tmp"' EXIT
+cp -- "$image" "$tmp/appimage"
+(cd "$tmp"; echo "$digest  appimage" | sha256sum -c -; chmod 700 appimage; ./appimage --appimage-extract >/dev/null)
+cargo build --locked --manifest-path "$repo/Cargo.toml" -p harness-sync-native --features learnharness-qa --bin harness-sync-fixture-peer
+cp "$repo/target/debug/harness-sync-fixture-peer" "$tmp/peer"
+# Only the mapped identity can traverse the vault, including between launches.
+# Read-only app resources can be opened by that identity inside the namespace.
+chmod -R a+rX "$tmp/squashfs-root"
+chmod 755 "$tmp/peer"
+mkdir -m 733 "$tmp/slot"
+# A separate ordinary-UID installation supplies a migration source. Only the
+# disposable subvolume created here may be snapshotted or removed by this test.
+mkdir -p "$repo/build"
+legacy=$(mktemp -d "$repo/build/legacy-migration-XXXXXXXX")
+cleanup() {
+  if [[ -d "$tmp/slot/vault" ]]; then guard cleanup; fi
+  if [[ -d "$legacy/sealed" ]]; then btrfs property set -ts "$legacy/sealed" ro false; fi
+  rm -rf -- "$legacy" "$tmp"
+}
+trap cleanup EXIT
+btrfs subvolume create "$legacy/original"
+timeout 100 bwrap --die-with-parent --unshare-all --clearenv --ro-bind /usr /usr \
+  --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin --proc /proc --dev /dev \
+  --tmpfs /tmp --dir /etc --ro-bind /etc/fonts /etc/fonts --ro-bind "$repo/node_modules" /node_modules \
+  --ro-bind "$tmp/squashfs-root" /app --ro-bind "$xserver" /Xvfb \
+  --ro-bind "$repo/tests/learnharness/window" /window --ro-bind "$repo/tests/learnharness/probe.mjs" /probe.mjs \
+  --ro-bind "$repo/tests/learnharness/provider.mjs" /provider.mjs --bind "$legacy/original" /profile \
+  --chdir /profile --setenv HOME /profile --setenv DISPLAY :71 --setenv PATH /usr/bin --setenv LANG C.UTF-8 \
+  --setenv XDG_RUNTIME_DIR /tmp/runtime --setenv XDG_CONFIG_HOME /profile/config \
+  --setenv XDG_CACHE_HOME /profile/cache --setenv XDG_DATA_HOME /profile/data --setenv XDG_STATE_HOME /profile/state \
+  bash /window transcript Original
+# The ordinary user retains the original. The test vault receives read access
+# only to a snapshot's data directory. Auth and the Electron profile stay out.
+subuid=$(unshare --user --map-auto --map-root-user awk '$1 == 1 {print $2}' /proc/self/uid_map)
+[[ $subuid =~ ^[0-9]+$ ]]
+setfacl -R -m "u:$subuid:rX" "$legacy/original/config/LearnHarness/data"
+setfacl -m "u:$subuid:r" "$legacy/original/transcript-id" "$legacy/original/expected-transcript.json"
+btrfs subvolume snapshot -r "$legacy/original" "$legacy/sealed"
+[[ $(btrfs property get -ts "$legacy/sealed" ro) == ro=true ]]
+
+# Optional packaged UI readback against the same real application's sealed backup.
+if [[ -n ${3:-} ]]; then
+  package=$(realpath "$3")
+  mkdir -m 700 "$tmp/report"
+  timeout 90 bwrap --die-with-parent --unshare-all --clearenv --ro-bind /usr /usr \
+    --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin --proc /proc --dev /dev \
+    --tmpfs /tmp --tmpfs /profile --ro-bind /etc/fonts /etc/fonts --ro-bind /etc/passwd /etc/passwd --ro-bind /etc/group /etc/group \
+    --ro-bind "$package" /candidate --ro-bind "$xserver" /Xvfb --ro-bind "$legacy/sealed" /qa-backup \
+    --ro-bind "$legacy/original" /qa-writable --ro-bind "$tmp/appimage" /profile/Applications/LearnHarness-0.6.1-x86_64.AppImage \
+    --bind "$tmp/report" /report --setenv HOME /profile --setenv XDG_RUNTIME_DIR /tmp/runtime \
+    --setenv PATH /usr/bin --setenv DISPLAY :71 --setenv LANG C.UTF-8 --setenv GDK_BACKEND x11 --chdir /tmp \
+    /bin/bash -eu -c '
+      mkdir -m 700 /tmp/runtime
+      mkdir -m 1777 /tmp/.X11-unix
+      /Xvfb :71 -screen 0 1180x800x24 -extension GLX -nolisten tcp >/tmp/xlog 2>&1 &
+      for i in {1..100}; do test -S /tmp/.X11-unix/X71 && break; sleep .05; done
+      rc=0
+      /candidate --appimage-extract-and-run --smoke-test --smoke-backup >/tmp/result || rc=$?
+      report=$(sed -n "s/^NATIVE_SMOKE_REPORT=//p" /tmp/result)
+      if [[ -f $report ]]; then cp "$report" /report/smoke.json; fi
+      if ((rc)); then cat /tmp/result; if [[ -f $report ]]; then cat "$report"; fi; exit "$rc"; fi'
+  python - "$tmp/report/smoke.json" <<'PYCHECK'
+import json, sys
+from pathlib import Path
+r = json.loads(Path(sys.argv[1]).read_bytes())
+assert r["ok"] and r["backup_inspection"] and r["installation"] == "LearnHarness 0.6.1 verified"
+print("Packaged WebKit inspected the sealed real backup, refused the writable source and preserved sync history")
+PYCHECK
+fi
+guard() {
+  timeout 150 unshare --user --map-auto --map-root-user --mount --propagation private \
+    bwrap --die-with-parent --unshare-pid --unshare-net --unshare-ipc --unshare-uts --clearenv \
+      --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
+      --proc /proc --dev /dev --tmpfs /tmp --dir /etc --ro-bind /etc/fonts /etc/fonts \
+      --ro-bind "$repo/tests/learnharness" /tests --ro-bind "$xserver" /Xvfb \
+      --ro-bind "$tmp/squashfs-root" /app --ro-bind "$repo/node_modules" /node_modules \
+      --ro-bind "$tmp/peer" /peer --ro-bind "$repo/scripts/native-peer-lab.mjs" /peer-lab.mjs \
+      --ro-bind "$legacy/sealed/config/LearnHarness/data" /source \
+      --ro-bind "$legacy/sealed/expected-transcript.json" /expected-transcript --ro-bind "$legacy/sealed/transcript-id" /expected-id --bind "$tmp/slot" /slot --setenv PATH /usr/bin --setenv LANG C.UTF-8 \
+      setpriv --reuid=1 --regid=1 --clear-groups bash /tests/managed-worker "$@"
+}
+guard init
+python - "$tmp/slot/vault" <<'PYTEST'
+import os, sys
+from pathlib import Path
+vault = Path(sys.argv[1])
+assert vault.stat().st_uid != os.geteuid()
+for name in ("A/config/LearnHarness/data/settings.json", "unexpected"):
+    try:
+        with (vault / name).open("xb"):
+            pass
+    except PermissionError:
+        continue
+    raise RuntimeError("Unmanaged writer was able to reach the managed vault")
+print("Unmanaged host UID denied by kernel")
+PYTEST
+# The first real Electron launch must exclude a concurrent commit.
+guard desktop create A >"$tmp/launch.log" &
+writer=$!
+for _ in {1..1000}; do
+  if grep -q "^LearnHarness window ready" "$tmp/launch.log"; then break; fi
+  kill -0 "$writer" || { cat "$tmp/launch.log"; exit 1; }
+  sleep .02
+done
+grep -q "^LearnHarness window ready" "$tmp/launch.log"
+rc=0
+guard transfer A B || rc=$?
+wait "$writer"
+cat "$tmp/launch.log"
+[[ $rc == 75 ]]
+guard desktop reopen A
+guard desktop empty B
+guard transfer A B
+guard desktop reopen B
+guard desktop append B
+guard transfer B A
+guard desktop reopen A
+guard desktop transcript C
+guard desktop configure D
+guard transfer C D
+guard desktop verify-transcript D
+guard desktop rename-transcript D
+guard transfer D C
+guard desktop verify-transcript C
+guard desktop branch C
+guard desktop branch D
+guard transfer C D conflict
+guard desktop configure E
+guard migrate
+guard desktop verify-transcript E
+diff -qr "$legacy/original/config/LearnHarness/data" "$legacy/sealed/config/LearnHarness/data"
+echo "Migration from read-only backup reopened independently on E; original verified"
+guard desktop path-reference C
+guard transfer C D path-reference

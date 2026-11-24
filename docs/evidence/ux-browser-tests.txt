@@ -1,0 +1,19 @@
+npm notice run harness-sync@0.1.0-beta test:ui
+npm notice run cargo build --locked -p harness-sync-native --bin harness-sync-fixture-peer && node --test tests/ui.test.mjs
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.08s
+✔ three destinations, large local typography, honest first launch at three sizes (3505.903174ms)
+✔ discovery opens in one click; full string, mutual approval and automatic Home return (1897.746394ms)
+✔ one click generates, transfers, verifies and adopts real test data; double click is guarded (3427.601773ms)
+✔ settings gear, progressive diagnostics, keyboard containment, Escape and reduced motion (513.795474ms)
+✔ device management names and confirmation preserve trust when canceled (226.236936ms)
+✔ receiver refusal produces a genuine failed result and remains recoverable (6690.577783ms)
+✔ offline state never reports current test success; production operations remain blocked (89.017373ms)
+✔ divergent histories stay preserved and Home leads directly to conflict review (4849.517363ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21842.982621

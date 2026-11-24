@@ -1,0 +1,30 @@
+npm notice run harness-sync@0.1.0-beta tauri
+npm notice run tauri build --bundles appimage,deb,rpm
+        Info Looking up installed tauri packages to check mismatched versions...
+     Running beforeBuildCommand `npm run build`
+npm notice run harness-sync@0.1.0-beta build
+npm notice run tsc --noEmit && vite build
+vite v7.3.8 building client environment for production...
+transforming...
+✓ 1750 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.51 kB │ gzip:  0.31 kB
+dist/assets/index-DzBV0Dq8.css   19.50 kB │ gzip:  4.90 kB
+dist/assets/index-5AkX27Iv.js   237.06 kB │ gzip: 73.84 kB
+✓ built in 1.56s
+   Compiling harness-sync-native v0.1.0 (<checkout>/crates/native-engine)
+   Compiling harness-sync v0.1.0-beta (<checkout>/src-tauri)
+    Finished `release` profile [optimized] target(s) in 17.84s
+       Built application at: <checkout>/target/release/harness-sync
+        Info Patching <checkout>/target/release/harness-sync with bundle type information: appimage
+    Bundling HarnessSync_0.1.0-beta_amd64.AppImage (<checkout>/target/release/bundle/appimage/HarnessSync_0.1.0-beta_amd64.AppImage)
+        Info Patching <checkout>/target/release/harness-sync with bundle type information: deb
+    Bundling HarnessSync_0.1.0-beta_amd64.deb (<checkout>/target/release/bundle/deb/HarnessSync_0.1.0-beta_amd64.deb)
+        Info Patching <checkout>/target/release/harness-sync with bundle type information: rpm
+    Bundling HarnessSync-0.1.0-beta-1.x86_64.rpm (<checkout>/target/release/bundle/rpm/HarnessSync-0.1.0-beta-1.x86_64.rpm)
+    Finished 3 bundles at:
+        <checkout>/target/release/bundle/appimage/HarnessSync_0.1.0-beta_amd64.AppImage (105.19 MiB)
+        <checkout>/target/release/bundle/deb/HarnessSync_0.1.0-beta_amd64.deb (6.40 MiB)
+        <checkout>/target/release/bundle/rpm/HarnessSync-0.1.0-beta-1.x86_64.rpm (6.40 MiB)
+

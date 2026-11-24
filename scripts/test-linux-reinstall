@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Test local Linux installers in an existing disposable distribution root.
+# All package-manager changes go to a private overlay, discarded at exit.
+set -euo pipefail
+repo=$(cd "$(dirname "$0")/.." && pwd -P)
+distro=$(realpath "${1:?Supply a prepared Ubuntu or Fedora root with Xvfb, xvfb-run, xauth and the runtime libraries}")
+previous=$(realpath "${2:?Supply the previous private package}")
+current=$(realpath "${3:?Supply the new package of the same format}")
+family=${current##*.}
+[[ $distro != / && -f $distro/etc/os-release && -f $previous && -f $current ]]
+[[ $family == deb || $family == rpm ]]
+[[ $previous == *."$family" ]]
+root=$(mktemp -d)
+trap 'rm -rf -- "$root"' EXIT
+mkdir -m 700 "$root/out"
+cd "$repo"
+cargo build --locked -p harness-sync-native --bin harness-sync-fixture-peer
+node --input-type=module - "$root" <<'JS'
+import { peerLab } from "./scripts/native-peer-lab.mjs";
+import { resolve } from "node:path";
+const {start, pair, wait, close} = peerLab(process.argv[2], resolve("target/debug/harness-sync-fixture-peer"));
+try {
+  const a = await start("Seed"), b = await start("Other");
+  await pair(a, b);
+  await b.request("initialize_synthetic", {confirmed:true});
+  const first = await b.request("synthetic_edit", {text:"Invented history before rebranding"});
+  await wait(a, s => s.head === first.snapshot);
+  const second = await b.request("synthetic_edit", {text:"Invented update before rebranding"});
+  await wait(a, s => s.head === second.snapshot && s.backups.length > 0);
+  await a.stop();
+  await b.stop();
+} finally { close(); }
+JS
+timeout 150 unshare --user --map-auto --map-root-user --mount bwrap --die-with-parent \
+  --unshare-pid --unshare-net --unshare-ipc --clearenv --overlay-src "$distro" --tmp-overlay / \
+  --tmpfs /tmp --tmpfs /run --dev /dev --proc /proc --ro-bind "$(command -v xprop)" /test-xprop \
+  --ro-bind "$previous" "/previous.$family" --ro-bind "$current" "/current.$family" \
+  --ro-bind "$root/Seed" /seed --bind "$root/out" /out --ro-bind "$repo/tests/package-reinstall" /check \
+  --setenv PATH /usr/sbin:/usr/bin:/sbin:/bin --setenv HOME /root --setenv LANG C.UTF-8 --chdir / \
+  /bin/bash /check "$family"
+python - "$root/out/smoke.json" <<'PY'
+import json, sys
+from pathlib import Path
+result = json.loads(Path(sys.argv[1]).read_bytes())
+assert all(result.get(key) is True for key in ("ok", "settings_ui", "production_refused", "packaged_font"))
+print("Installed binary passed WebKit and native smoke")
+PY

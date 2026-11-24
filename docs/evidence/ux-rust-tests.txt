@@ -1,0 +1,63 @@
+   Compiling harness-sync-native v0.1.0 (<checkout>/crates/native-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.51s
+     Running unittests src/lib.rs (target/debug/build/harness-sync-core/43b76d4aa56aa5f7/out/harness_sync_core-43b76d4aa56aa5f7)
+
+running 7 tests
+test tests::cycle_fails ... ok
+test tests::causal_order ... ok
+test tests::hashes_and_unknown_ancestry ... ok
+test tests::paths_fail_closed ... ok
+test tests::equal_missing_history_fails ... ok
+test tests::schema_fails_closed ... ok
+test tests::manifest_deterministic ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/build/harness-sync-native/d1e3717b4801f0c5/out/harness_sync_native-d1e3717b4801f0c5)
+
+running 5 tests
+test network::tests::replayed_proof_is_invalid_on_new_tls_session ... ok
+test network::tests::corrupt_payload_never_commits ... ok
+test network::tests::interrupted_payload_never_commits ... ok
+test network::tests::invalid_remote_object_id_is_refused ... ok
+test network::tests::protocol_version_and_message_size_limits ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/bin/harness-sync-fixture-peer.rs (target/debug/build/harness-sync-native/af2e12a561c2a32a/out/harness_sync_fixture_peer-af2e12a561c2a32a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/native.rs (target/debug/build/harness-sync-native/1cf32216737faa68/out/native-1cf32216737faa68)
+
+running 13 tests
+test symlink_and_hardlink_attacks_fail_closed ... ok
+test nonempty_ordinary_directory_cannot_be_adopted_as_test_profile ... ok
+test active_writer_unknown_schema_disk_failure_and_profile_lock_fail_closed ... ok
+test quota_refusal_preserves_head_and_history ... ok
+test identity_persists_and_corruption_does_not_regenerate ... ok
+test durable_storage_recovery_duplicates_hashes_ancestry_backups ... ok
+test failed_ledger_commit_preserves_original_and_independent_backup ... ok
+test fast_forward_backup_and_restore_are_recoverable ... ok
+test wrong_certificate_and_wrong_identity_are_rejected ... ok
+test rejecting_pairing_persists_no_trust_and_untrusted_sync_is_refused ... ok
+test test_cannot_claim_success_for_a_divergent_peer ... ok
+test one_click_test_prepares_both_peers_requires_remote_adoption_and_blocks_duplicates ... ok
+test real_quic_pair_transfer_bidirectional_offline_conflict_reconnect_revoke ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.05s
+
+   Doc-tests harness_sync_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests harness_sync_native
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

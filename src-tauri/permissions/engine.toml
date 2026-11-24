@@ -1,0 +1,9 @@
+[[permission]]
+identifier = "allow-engine-request"
+description = "Invoke validated commands on the in-process engine."
+commands.allow = ["engine_request"]
+
+[[permission]]
+identifier = "allow-smoke-report"
+description = "Complete the isolated --smoke-test run; refused during normal operation."
+commands.allow = ["smoke_report"]

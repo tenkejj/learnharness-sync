@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "transport": "real QUIC over loopback",
+  "processes": 2,
+  "identities_persisted": true,
+  "mutual_pairing": true,
+  "verified_one_click_test": true,
+  "bidirectional_transfer": true,
+  "restart_reconnect": true,
+  "offline_fast_forward": true,
+  "divergence_preserved": true,
+  "production_data_access": false,
+  "report": "/tmp/harnesssync-two-process-FYNWdW/report.json"
+}

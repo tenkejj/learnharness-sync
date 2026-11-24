@@ -1,0 +1,54 @@
+#!/bin/bash
+set -eux
+# Called only in the private rootfs overlay by scripts/test-linux-reinstall.
+[[ -r /seed/identity.json && -r /seed/devices.json && -d /out ]]
+umask 077
+family=$1
+private=$(mktemp -d)
+install -d -m 700 "$private/runtime" "$private/data/community.harnesssync.desktop/native-v2"
+cp -a --no-preserve=ownership /seed/. "$private/data/community.harnesssync.desktop/native-v2"
+profile="$private/data/community.harnesssync.desktop/native-v2"
+chown -R nobody "$private"
+chmod 1777 /tmp
+mkdir -p /tmp/.X11-unix
+chmod 1777 /tmp/.X11-unix
+run_user() {
+  setpriv --reuid=nobody --regid="$(id -g nobody)" --clear-groups env HOME="$private" XDG_DATA_HOME="$private/data" XDG_RUNTIME_DIR="$private/runtime" GDK_BACKEND=x11 xvfb-run -a "$@"
+}
+install_pkg() {
+  if [[ $family == deb ]]; then dpkg --auto-deconfigure -i "/$1.deb"; else rpm -Uvh --replacepkgs "/$1.rpm"; fi
+}
+launch() {
+  run_user bash -ec '
+    "$1" >"$HOME/launch.log" 2>&1 & pid=$!
+    trap "kill $pid 2>/dev/null || true" EXIT
+    for i in {1..60}; do
+      kill -0 "$pid" || { cat "$HOME/launch.log"; exit 1; }
+      if /test-xprop -name "$2" WM_CLASS >/dev/null 2>&1; then exit 0; fi
+      sleep .2
+    done
+    cat "$HOME/launch.log"
+    exit 1' shell "$1" "$2"
+}
+cd "$profile"
+test -n "$(find backups -type f -print -quit)"
+test -n "$(find manifests -type f -print -quit)"
+find identity.json devices.json ledger.json objects manifests backups -type f -print0 | sort -z | xargs -0 sha256sum >/tmp/pins
+install_pkg previous
+launch /usr/bin/harness-sync HarnessSync
+sha256sum --status -c /tmp/pins
+install_pkg current
+if [[ $family == rpm ]] && rpm -qf /usr/bin/harness-sync >/dev/null 2>&1; then
+  ! rpm -qf /usr/bin/harness-sync | grep -q '^harness-sync-'
+else
+  test ! -e /usr/bin/harness-sync
+fi
+launch /usr/bin/learnharness-sync "LearnHarness Sync"
+sha256sum --status -c /tmp/pins
+install_pkg current
+run_user /usr/bin/learnharness-sync --smoke-test > /tmp/smoke
+report=$(sed -n 's/^NATIVE_SMOKE_REPORT=//p' /tmp/smoke)
+cat "$report" > /out/smoke.json
+sha256sum --status -c /tmp/pins
+test ! -e "$private/data/io.github.tenkejj.learnharness-sync/native-v2"
+echo "Packaged GUI opened; identity, trusted peer, ledger, objects, manifests and backups survived the rename"

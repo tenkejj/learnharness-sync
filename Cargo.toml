@@ -1,0 +1,4 @@
+[workspace]
+resolver = "2"
+members = ["crates/sync-core", "crates/native-engine", "src-tauri"]
+default-members = ["crates/sync-core", "crates/native-engine"]
