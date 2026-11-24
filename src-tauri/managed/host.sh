@@ -5,12 +5,25 @@ op=$1 worker=$2
 fail() { print_error="$1"; printf '%s\n' "$print_error" >&2; exit 1; }
 base=${XDG_DATA_HOME:-$HOME/.local/share}/io.github.tenkejj.learnharness-sync/managed
 [[ $base == /* && $HOME == /* ]] || fail 'An absolute data directory is required.'
-case "$op" in status|launch|recover|bridge) ;; *) exit 64 ;; esac
+case "$op" in status|launch|recover|bridge|bridge-delay|qa-populate) ;; *) exit 64 ;; esac
 mounts=()
-helper=${3:-}
-if [[ $op == bridge ]]; then
+helper=''
+qa_root=${4:-}
+if [[ $op == qa-populate ]]; then qa_root=${3:-}; else helper=${3:-}; fi
+if [[ $op == bridge || $op == bridge-delay ]]; then
   [[ $helper == /* && -f $helper && ! -L $helper ]] || fail 'Invalid managed bridge launch.'
+  if [[ $op == bridge-delay ]]; then [[ ${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-} == 1 ]] || fail 'Managed helper interruption test requires explicit QA mode.'; fi
   mounts=(--ro-bind "$helper" /helper)
+fi
+if [[ $op == qa-populate ]]; then
+  [[ ${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-} == 1 && $qa_root == /* && ! -L $qa_root && -d $qa_root ]] || fail 'Managed capture acceptance assets are unavailable.'
+  for asset in tests/learnharness/probe.mjs tests/learnharness/provider.mjs tests/learnharness/managed-manifest.mjs node_modules/playwright/index.mjs; do
+    [[ -f $qa_root/$asset && ! -L $qa_root/$asset ]] || fail 'Managed capture acceptance assets are incomplete.'
+  done
+  mounts+=(--ro-bind "$qa_root/tests/learnharness/probe.mjs" /probe.mjs
+           --ro-bind "$qa_root/tests/learnharness/provider.mjs" /provider.mjs
+           --ro-bind "$qa_root/tests/learnharness/managed-manifest.mjs" /managed-manifest.mjs
+           --ro-bind "$qa_root/node_modules" /node_modules)
 fi
 if [[ ! -e $base/slot && $op == status ]]; then echo new; exit; fi
 mkdir -p -m 700 -- "$base"
@@ -21,7 +34,7 @@ mkdir -p -m 700 -- "$base"
 mkdir -m 733 -- "$base/slot" 2>/dev/null || [[ -d $base/slot ]]
 [[ ! -L $base/slot && $(stat -c '%u:%a' "$base/slot") == "$(id -u):733" ]] || fail 'Invalid managed storage entrance.'
 displaynum=0
-if [[ $op == launch ]]; then
+if [[ $op == launch || $op == qa-populate ]]; then
   source=$HOME/Applications/LearnHarness-0.6.1-x86_64.AppImage
   [[ -f $source && ! -L $source && -x $source ]] || fail 'Install the official LearnHarness 0.6.1 AppImage first.'
   tmp=$(mktemp -d)
@@ -65,11 +78,11 @@ if [[ $op == launch ]]; then
     server=''
   done
   [[ $displaynum =~ ^[0-9]+$ && -S /tmp/.X11-unix/X$displaynum ]] || fail 'The private display did not start.'
-  mounts=(--ro-bind "$tmp/squashfs-root" /app --ro-bind "$auth" /auth --ro-bind "/tmp/.X11-unix/X$displaynum" /display)
+  mounts+=(--ro-bind "$tmp/squashfs-root" /app --ro-bind "$auth" /auth --ro-bind "/tmp/.X11-unix/X$displaynum" /display)
 fi
 unshare --user --map-auto --map-root-user --mount --propagation private \
   bwrap --die-with-parent --new-session --unshare-pid --unshare-net --unshare-ipc --unshare-uts --clearenv \
   --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
   --dir /etc --ro-bind /etc/fonts /etc/fonts --proc /proc --dev /dev --tmpfs /tmp \
   --bind "$base/slot" /slot "${mounts[@]}" --setenv PATH /usr/bin --setenv LANG C.UTF-8 \
-  setpriv --reuid=1 --regid=1 --clear-groups bash -c "$worker" worker "$op" "$displaynum" "${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-}" "" "$helper"
+  setpriv --reuid=1 --regid=1 --clear-groups bash -c "$worker" worker "$op" "$displaynum" "${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-}" "" "$helper" "$qa_root"

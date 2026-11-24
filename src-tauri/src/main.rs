@@ -123,7 +123,16 @@ async fn smoke_report(
 }
 fn main() {
     let bridge_args: Vec<String> = std::env::args().collect();
-    if bridge_args.len() == 2 && bridge_args[1] == "--managed-bridge-stdio" {
+    #[cfg(debug_assertions)]
+    let interrupt_probe = bridge_args.len() == 3
+        && bridge_args[1] == "--managed-bridge-stdio"
+        && bridge_args[2] == "--test-pause-before-read";
+    #[cfg(not(debug_assertions))]
+    let interrupt_probe = false;
+    if (bridge_args.len() == 2 && bridge_args[1] == "--managed-bridge-stdio") || interrupt_probe {
+        if interrupt_probe {
+            std::thread::sleep(Duration::from_secs(8));
+        }
         let stdin = std::io::stdin();
         let stdout = std::io::stdout();
         let mut input = stdin.lock();
@@ -189,6 +198,27 @@ fn main() {
             }
         }
         return;
+    }
+    #[cfg(all(debug_assertions, target_os = "linux", target_arch = "x86_64"))]
+    if std::env::args().nth(1).as_deref() == Some("--managed-populate-real-app-test") {
+        match managed::populate_disposable_real_app_profile() {
+            Ok(report) => println!("{report}"),
+            Err(error) => {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
+    #[cfg(all(debug_assertions, target_os = "linux", target_arch = "x86_64"))]
+    if std::env::args().nth(1).as_deref() == Some("--managed-snapshot-interruption-test") {
+        match managed::request_interruption_test() {
+            Ok(_) => std::process::exit(2),
+            Err(error) => {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+        }
     }
     // This diagnostic exists only in debug builds so the cross-UID acceptance
     // test can prove the helper rejects an otherwise well-formed request.

@@ -34,24 +34,116 @@ fn stage_helper(source: PathBuf) -> Result<StagedHelper, String> {
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub fn snapshot() -> Result<serde_json::Value, String> {
     let value = request(harness_sync_native::managed_bridge::Operation::Snapshot)?;
+    validate_snapshot_metadata(&value)?;
+    Ok(value)
+}
+
+fn validate_snapshot_metadata(value: &serde_json::Value) -> Result<(), String> {
     if value.get("format").and_then(serde_json::Value::as_str)
         != Some("learnharness-0.6.1-disposable-v1")
     {
         return Err("Managed helper returned an unsupported snapshot profile".into());
     }
+    let valid_hash = |hash: &str| {
+        hash.len() == 64
+            && hash
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    };
     if !value
         .get("digest")
         .and_then(serde_json::Value::as_str)
-        .is_some_and(|digest| digest.len() == 64 && digest.bytes().all(|b| b.is_ascii_hexdigit()))
+        .is_some_and(valid_hash)
     {
         return Err("Managed helper returned invalid snapshot integrity metadata".into());
     }
-    Ok(value)
+    let files = value
+        .get("files")
+        .and_then(serde_json::Value::as_u64)
+        .ok_or("Managed helper returned an invalid file count")?;
+    let bytes = value
+        .get("bytes")
+        .and_then(serde_json::Value::as_u64)
+        .ok_or("Managed helper returned an invalid byte count")?;
+    let manifest = value
+        .get("manifest")
+        .and_then(serde_json::Value::as_array)
+        .ok_or("Managed helper returned no file manifest")?;
+    if manifest.len() as u64 != files
+        || serde_json::to_vec(manifest).map_or(true, |b| b.len() > 48 * 1024)
+    {
+        return Err("Managed helper returned an inconsistent file manifest".into());
+    }
+    let mut total = 0u64;
+    let mut names = std::collections::BTreeSet::new();
+    for entry in manifest {
+        let object = entry
+            .as_object()
+            .ok_or("Managed helper returned a malformed manifest entry")?;
+        if object.len() != 3 {
+            return Err("Managed helper returned an unsupported manifest entry".into());
+        }
+        let path = object
+            .get("path")
+            .and_then(serde_json::Value::as_str)
+            .ok_or("Managed helper returned an invalid manifest path")?;
+        let size = object
+            .get("bytes")
+            .and_then(serde_json::Value::as_u64)
+            .ok_or("Managed helper returned an invalid manifest size")?;
+        let digest = object
+            .get("sha256")
+            .and_then(serde_json::Value::as_str)
+            .ok_or("Managed helper returned an invalid manifest hash")?;
+        let supported = if let Some(name) = path
+            .strip_prefix("chats/")
+            .and_then(|p| p.strip_suffix(".json"))
+        {
+            name.strip_prefix("chat_")
+                .and_then(|name| name.split_once('_'))
+                .is_some_and(|(stamp, nonce)| {
+                    !stamp.is_empty()
+                        && stamp
+                            .bytes()
+                            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit())
+                        && nonce.len() == 8
+                        && nonce.bytes().all(|b| b.is_ascii_hexdigit())
+                })
+        } else {
+            matches!(
+                path,
+                "graph/format.json"
+                    | "graph/nodes.jsonl"
+                    | "graph/chains.jsonl"
+                    | "graph/coverage.jsonl"
+                    | "graph/positions.json"
+            )
+        };
+        if !supported || !valid_hash(digest) || !names.insert(path) {
+            return Err("Managed helper returned an unsafe or duplicate manifest path".into());
+        }
+        total = total
+            .checked_add(size)
+            .ok_or("Managed helper returned an overflowing manifest size")?;
+    }
+    if total != bytes {
+        return Err("Managed helper returned an inconsistent manifest byte count".into());
+    }
+    Ok(())
 }
 
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub fn request(
     operation: harness_sync_native::managed_bridge::Operation,
+) -> Result<serde_json::Value, String> {
+    request_via(operation, "bridge", false)
+}
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+fn request_via(
+    operation: harness_sync_native::managed_bridge::Operation,
+    supervisor_operation: &str,
+    qa_probe: bool,
 ) -> Result<serde_json::Value, String> {
     let source = std::env::current_exe().map_err(|_| "LearnHarness Sync executable unavailable")?;
     let helper = stage_helper(source)?;
@@ -59,6 +151,9 @@ pub fn request(
     cmd.env_clear()
         .env("PATH", "/usr/bin")
         .env("LANG", "C.UTF-8");
+    if qa_probe {
+        cmd.env("LEARNHARNESS_SYNC_MANAGED_QA_LOG", "1");
+    }
     for key in ["HOME", "XDG_DATA_HOME"] {
         if let Some(value) = std::env::var_os(key) {
             cmd.env(key, value);
@@ -69,7 +164,7 @@ pub fn request(
             "-c",
             include_str!("../managed/host.sh"),
             "launcher",
-            "bridge",
+            supervisor_operation,
             include_str!("../managed/worker.sh"),
             helper
                 .0
@@ -154,6 +249,15 @@ pub fn request(
     result
 }
 
+#[cfg(all(debug_assertions, target_os = "linux", target_arch = "x86_64"))]
+pub fn request_interruption_test() -> Result<serde_json::Value, String> {
+    request_via(
+        harness_sync_native::managed_bridge::Operation::Snapshot,
+        "bridge-delay",
+        true,
+    )
+}
+
 #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
 pub fn snapshot() -> Result<serde_json::Value, String> {
     Err("Managed snapshots require Linux x86_64".into())
@@ -164,6 +268,70 @@ pub fn request(
     _operation: harness_sync_native::managed_bridge::Operation,
 ) -> Result<serde_json::Value, String> {
     Err("Managed snapshots require Linux x86_64".into())
+}
+
+#[cfg(all(debug_assertions, target_os = "linux", target_arch = "x86_64"))]
+pub fn populate_disposable_real_app_profile() -> Result<String, String> {
+    let qa_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .ok_or("Managed application test assets are unavailable")?
+        .canonicalize()
+        .map_err(|_| "Managed application test assets are unavailable")?;
+    let mut cmd = Command::new("/usr/bin/bash");
+    cmd.env_clear()
+        .env("PATH", "/usr/bin")
+        .env("LANG", "C.UTF-8");
+    for key in [
+        "HOME",
+        "XDG_DATA_HOME",
+        "DISPLAY",
+        "WAYLAND_DISPLAY",
+        "XDG_RUNTIME_DIR",
+        "XAUTHORITY",
+        "LEARNHARNESS_SYNC_MANAGED_QA_LOG",
+    ] {
+        if let Some(value) = std::env::var_os(key) {
+            cmd.env(key, value);
+        }
+    }
+    let output = cmd
+        .args([
+            "-c",
+            include_str!("../managed/host.sh"),
+            "launcher",
+            "qa-populate",
+            include_str!("../managed/worker.sh"),
+            qa_root
+                .to_str()
+                .ok_or("Invalid managed application test path")?,
+        ])
+        .output()
+        .map_err(|_| "Could not start the isolated LearnHarness acceptance run")?;
+    if !output.status.success() {
+        let diagnostic = format!(
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stderr),
+            String::from_utf8_lossy(&output.stdout)
+        );
+        return Err(diagnostic
+            .lines()
+            .rev()
+            .take(60)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect::<Vec<_>>()
+            .join("; "));
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let report = stdout
+        .lines()
+        .find(|line| line.starts_with("MANAGED_REAL_APP_REPORT="))
+        .ok_or("The real LearnHarness profile report was unavailable")?;
+    if stdout.lines().last() != Some("saved") {
+        return Err("The real LearnHarness managed profile was not saved cleanly".into());
+    }
+    Ok(format!("{report}\nsaved"))
 }
 
 pub fn run(operation: &str) -> Result<String, String> {
@@ -244,5 +412,23 @@ mod tests {
             super::run("import").unwrap_err(),
             "Managed sessions require Linux x86_64."
         );
+    }
+
+    #[test]
+    fn snapshot_metadata_rejects_unsafe_manifest_entries() {
+        let valid = serde_json::json!({
+            "format":"learnharness-0.6.1-disposable-v1",
+            "digest":"a".repeat(64),
+            "files":1,
+            "bytes":2,
+            "manifest":[{"path":"chats/chat_abc_1234abcd.json","bytes":2,"sha256":"b".repeat(64)}]
+        });
+        assert!(super::validate_snapshot_metadata(&valid).is_ok());
+        let mut invalid = valid.clone();
+        invalid["manifest"][0]["path"] = serde_json::json!("../auth.json");
+        assert!(super::validate_snapshot_metadata(&invalid).is_err());
+        let mut invalid = valid;
+        invalid["bytes"] = serde_json::json!(3);
+        assert!(super::validate_snapshot_metadata(&invalid).is_err());
     }
 }

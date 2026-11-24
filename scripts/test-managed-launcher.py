@@ -41,6 +41,17 @@ def find_child(process, name):
         raise RuntimeError("Managed launcher exited before the window appeared")
 
 
+def find_descendant_command(process, marker):
+    for pid in descendants(process.pid):
+        try:
+            command = Path(f"/proc/{pid}/cmdline").read_bytes().decode(errors="ignore")
+            comm = Path(f"/proc/{pid}/comm").read_text().strip()
+            if comm == "helper" and marker in command:
+                return pid
+        except (FileNotFoundError, PermissionError):
+            pass
+
+
 def exercise(package, image, weston_root, host_display=False):
     repo = Path(__file__).resolve().parents[1]
     root = Path(tempfile.mkdtemp(prefix="managed-accept-", dir=repo/"build"))
@@ -129,13 +140,29 @@ def exercise(package, image, weston_root, host_display=False):
                 display = subprocess.Popen(compositor, env=env, stdout=log, stderr=log)
                 until(lambda: (runtime/"managed-test").is_socket())
             assert request("status") == "new"
-            close_window(launch())
+            debug_binary = repo/"target/debug/learnharness-sync"
+            populate = subprocess.run([debug_binary, "--managed-populate-real-app-test"], env=env,
+                                      capture_output=True, text=True, timeout=180)
+            assert populate.returncode == 0, populate.stderr + populate.stdout
+            oracle_line = next((line for line in populate.stdout.splitlines()
+                                if line.startswith("MANAGED_REAL_APP_REPORT=")), None)
+            assert oracle_line, populate.stdout
+            oracle = __import__("json").loads(oracle_line.split("=", 1)[1])
+            assert populate.stdout.splitlines()[-1] == "saved", populate.stdout
+            assert request("status") == "saved"
+            assert oracle["messageCount"] == 4
+            assert len(oracle["propositionIds"]) == 3 and len(oracle["chainIds"]) == 2
+            print(f"Real LearnHarness created {oracle['messageCount']} messages, 3 propositions and 2 graph chains for {oracle['chatId']}.", flush=True)
             assert request("status") == "saved"
             captured = subprocess.run([package, "--managed-snapshot"], env=env, capture_output=True, text=True, timeout=30)
             assert captured.returncode == 0, captured.stderr
             snapshot = __import__("json").loads(captured.stdout)
             assert snapshot["format"] == "learnharness-0.6.1-disposable-v1"
             assert isinstance(snapshot["digest"], str) and len(snapshot["digest"]) == 64
+            assert snapshot["files"] > 0 and snapshot["bytes"] > 0
+            assert snapshot["manifest"] == oracle["manifest"], "Packaged helper manifest differs from independent post-exit file hashes"
+            assert any(file["path"] == f"chats/{oracle['chatId']}.json" for file in snapshot["manifest"])
+            assert sum(file["bytes"] for file in snapshot["manifest"]) == snapshot["bytes"]
             print(f"Subordinate-UID snapshot IPC passed: {snapshot['files']} files, {snapshot['bytes']} bytes, digest {snapshot['digest']}", flush=True)
             smoke = subprocess.run([package, "--smoke-test", "--smoke-managed-snapshot"], env=env,
                                    capture_output=True, text=True, timeout=120)
@@ -145,8 +172,55 @@ def exercise(package, image, weston_root, host_display=False):
             assert report_line, smoke.stdout
             report = __import__("json").loads(Path(report_line.split("=", 1)[1]).read_text())
             assert report["ok"] and report["managed_snapshot"]["digest"] == snapshot["digest"], report
+            assert report["managed_snapshot"]["manifest"] == oracle["manifest"], "Tauri command manifest differs from independent LearnHarness data"
             print("Tauri WebView command successfully requested the subordinate-UID snapshot.", flush=True)
-            debug_binary = repo/"target/debug/learnharness-sync"
+            original_generation = vault('exec 9<.; flock -n 9; cat current')
+            malformed_generation = vault(
+                'exec 9<.; flock -n 9; old=$(cat current); '
+                'bad=session.$(cat /proc/sys/kernel/random/uuid); '
+                'btrfs subvolume snapshot "$old" "$bad" >/dev/null; '
+                'printf "{broken\\n" > "$bad/config/LearnHarness/data/chats/unsupported.json"; '
+                'btrfs property set -ts "$bad" ro true; '
+                'printf "%s\\n" "$bad" > current.next; sync -f .; mv -T current.next current; '
+                'printf "%s\\n" "$bad"'
+            )
+            assert malformed_generation.startswith("session.")
+            malformed = subprocess.run([package, "--managed-snapshot"], env=env,
+                                        capture_output=True, text=True, timeout=30)
+            assert malformed.returncode != 0, "Malformed LearnHarness content was accepted"
+            assert request("status") == "recovery", "Rejected malformed capture must retain a recovery marker"
+            assert request("recover-confirmed") == "recovered"
+            restored = vault(
+                f'exec 9<.; flock -n 9; printf "%s\\n" "{original_generation}" > current.next; '
+                'sync -f .; mv -T current.next current'
+            )
+            assert restored == "", restored
+            retry = subprocess.run([package, "--managed-snapshot"], env=env,
+                                   capture_output=True, text=True, timeout=30)
+            assert retry.returncode == 0, retry.stderr
+            assert __import__("json").loads(retry.stdout)["digest"] == snapshot["digest"], "Retry did not recover the original verified generation"
+            assert request("status") == "saved"
+            print("Malformed content refused; recovery restored the prior immutable generation and capture retry matched.", flush=True)
+            interrupted = subprocess.Popen([debug_binary, "--managed-snapshot-interruption-test"], env=env,
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            helper_pid = None
+            deadline = time.monotonic() + 10
+            while time.monotonic() < deadline and interrupted.poll() is None:
+                helper_pid = find_descendant_command(interrupted, "--test-pause-before-read")
+                if helper_pid:
+                    break
+                time.sleep(.01)
+            assert helper_pid, "Timed out locating the deliberately paused subordinate-UID helper"
+            os.kill(helper_pid, signal.SIGKILL)
+            interrupted_out, interrupted_err = interrupted.communicate(timeout=30)
+            assert interrupted.returncode != 0, interrupted_out
+            assert request("status") == "recovery", "Killed helper did not retain its recovery marker"
+            assert request("recover-confirmed") == "recovered"
+            retry = subprocess.run([package, "--managed-snapshot"], env=env,
+                                   capture_output=True, text=True, timeout=30)
+            assert retry.returncode == 0, retry.stderr
+            assert __import__("json").loads(retry.stdout)["digest"] == snapshot["digest"]
+            print("Paused helper was killed across the UID boundary; recovery and packaged capture retry passed.", flush=True)
             if debug_binary.is_file():
                 unauthorized = subprocess.run([debug_binary, "--managed-bridge-unauthorized-test"], env=env,
                                               capture_output=True, text=True, timeout=30)

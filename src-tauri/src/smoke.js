@@ -6,8 +6,8 @@
     let managedSnapshot = null;
     if (window.__CHECK_MANAGED_SNAPSHOT__) {
       managedSnapshot = await cmd("managed_snapshot");
-      if (managedSnapshot.format !== "learnharness-0.6.1-disposable-v1" || !/^[a-f0-9]{64}$/.test(managedSnapshot.digest)) {
-        throw Error("Managed subordinate-UID snapshot unavailable through Tauri command");
+      if (managedSnapshot.format !== "learnharness-0.6.1-disposable-v1" || !/^[a-f0-9]{64}$/.test(managedSnapshot.digest) || managedSnapshot.files < 1 || managedSnapshot.bytes < 1 || !Array.isArray(managedSnapshot.manifest)) {
+        throw Error("Non-empty managed subordinate-UID snapshot unavailable through Tauri command");
       }
     }
     const before = await cmd("status");

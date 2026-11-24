@@ -83,11 +83,32 @@ impl Tree {
             .values()
             .map(|value| value.len() as u64)
             .sum::<u64>();
+        let manifest: Vec<_> = records
+            .iter()
+            .map(|(path, bytes)| {
+                serde_json::json!({
+                    "path": path,
+                    "bytes": bytes.len(),
+                    "sha256": harness_sync_core::sha256(bytes),
+                })
+            })
+            .collect();
+        let manifest_size = serde_json::to_vec(&manifest)?.len();
+        ensure!(
+            manifest_size <= 48 * 1024,
+            "Managed profile manifest exceeds the local IPC response limit"
+        );
+        let digest = Self {
+            directories: tree.directories,
+            files: records,
+        }
+        .id()?;
         Ok(serde_json::json!({
             "format": harness_sync_core::learnharness_061::FORMAT,
-            "digest": tree.id()?,
-            "files": records.len(),
+            "digest": digest,
+            "files": manifest.len(),
             "bytes": bytes,
+            "manifest": manifest,
         }))
     }
 

@@ -20,6 +20,7 @@ export type ManagedSnapshot = {
   digest: string;
   files: number;
   bytes: number;
+  manifest: { path: string; bytes: number; sha256: string }[];
 };
 export type EngineCommand =
   | "managed_status"
