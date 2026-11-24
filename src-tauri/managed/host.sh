@@ -5,12 +5,12 @@ op=$1 worker=$2
 fail() { print_error="$1"; printf '%s\n' "$print_error" >&2; exit 1; }
 base=${XDG_DATA_HOME:-$HOME/.local/share}/io.github.tenkejj.learnharness-sync/managed
 [[ $base == /* && $HOME == /* ]] || fail 'An absolute data directory is required.'
-case "$op" in status|launch|recover|bridge|bridge-delay|qa-populate) ;; *) exit 64 ;; esac
+case "$op" in status|launch|recover|bridge|bridge-delay|apply|confirm|qa-populate) ;; *) exit 64 ;; esac
 mounts=()
 helper=''
 qa_root=${4:-}
 if [[ $op == qa-populate ]]; then qa_root=${3:-}; else helper=${3:-}; fi
-if [[ $op == bridge || $op == bridge-delay ]]; then
+if [[ $op == bridge || $op == bridge-delay || $op == apply || $op == confirm || $op == recover ]]; then
   [[ $helper == /* && -f $helper && ! -L $helper ]] || fail 'Invalid managed bridge launch.'
   if [[ $op == bridge-delay ]]; then [[ ${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-} == 1 ]] || fail 'Managed helper interruption test requires explicit QA mode.'; fi
   mounts=(--ro-bind "$helper" /helper)

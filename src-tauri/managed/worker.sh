@@ -18,16 +18,33 @@ if [[ -e current ]]; then
   current=$(cat current)
   [[ $current =~ ^session\.[a-f0-9-]{36}$ && ! -L $current && $(btrfs property get -ts "$current" ro) == ro=true ]] || { echo 'Last saved generation could not be verified.' >&2; exit 1; }
 fi
+is_verified_current() {
+  [[ -d transactions ]] || return 1
+  for transaction in transactions/apply-*.json; do
+    [[ -f $transaction ]] || continue
+    grep -Fq '"state":"application_readback_verified"' "$transaction" \
+      && grep -Fq "\"new_generation\":\"$current\"" "$transaction" && return 0
+  done
+  return 1
+}
 if [[ $op == status ]]; then
-  if [[ -e active ]]; then echo recovery; elif [[ -n $current ]]; then echo saved; else echo new; fi
+  if [[ -e active ]]; then echo recovery
+  elif [[ -e apply.pending.json ]]; then echo awaiting-readback
+  elif is_verified_current; then echo verified
+  elif [[ -n $current ]]; then echo saved
+  else echo new
+  fi
   exit
 fi
+helper_args=()
 if [[ $op == recover ]]; then
-  if [[ -e active ]]; then
-    mv -T active "interrupted.$(cat /proc/sys/kernel/random/uuid)"
-    sync -f .
-  fi
-  echo recovered; exit
+  [[ $4 == '' && $5 == /* ]] || { echo 'Invalid managed recovery helper.' >&2; exit 64; }
+  bwrap --die-with-parent --unshare-all --clearenv \
+    --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
+    --proc /proc --dev /dev \
+    --ro-bind /helper /helper --bind "$PWD" /vault --chdir /vault \
+    --setenv PATH /usr/bin --setenv LANG C.UTF-8 /helper --managed-bridge-stdio
+  exit
 fi
 if [[ $op == bridge || $op == bridge-delay ]]; then
   [[ $number == 0 && $4 == '' && $5 == /* ]] || { echo 'Invalid bridge request.' >&2; exit 64; }
@@ -47,6 +64,36 @@ if [[ $op == bridge || $op == bridge-delay ]]; then
     --setenv PATH /usr/bin --setenv LANG C.UTF-8 /helper --managed-bridge-stdio "${helper_args[@]}"
   rm -- active
   sync -f .
+  exit
+fi
+if [[ $op == apply || $op == confirm ]]; then
+  [[ $4 == '' && $5 == /* ]] || { echo 'Invalid managed transaction helper.' >&2; exit 64; }
+  if [[ $op == apply ]]; then
+    [[ -n $current && ! -e active && ! -e apply.pending.json ]] || { echo 'A saved idle managed profile with no pending transaction is required.' >&2; exit 76; }
+    printf 'apply\n' > active
+  else
+    [[ ! -e active ]] || { echo 'A managed writer is active; close LearnHarness first.' >&2; exit 75; }
+    printf 'confirm\n' > active
+  fi
+  sync -f .
+  if bwrap --die-with-parent --unshare-all --clearenv \
+    --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
+    --proc /proc --dev /dev \
+    --ro-bind /helper /helper --bind "$PWD" /vault --chdir /vault \
+    --setenv PATH /usr/bin --setenv LANG C.UTF-8 /helper --managed-bridge-stdio; then
+    rm -- active
+    sync -f .
+  else
+    result=$?
+    # Before the durable apply journal exists, no generation switch can have
+    # occurred. Clear only that safe pre-transaction refusal; otherwise keep
+    # the marker so explicit recovery is required.
+    if [[ $op == apply && ! -e apply.pending.json ]]; then
+      rm -- active
+      sync -f .
+    fi
+    exit "$result"
+  fi
   exit
 fi
 qa_app_mounts=()

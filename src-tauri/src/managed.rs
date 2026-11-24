@@ -217,6 +217,54 @@ pub fn request(
 }
 
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+pub fn apply(revision: String, bundle: serde_json::Value) -> Result<serde_json::Value, String> {
+    request_via(
+        harness_sync_native::managed_bridge::Operation::PrepareApply {
+            head: revision,
+            bundle,
+            consent: true,
+        },
+        "apply",
+        false,
+    )
+}
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+fn confirm_readback() -> Result<bool, String> {
+    let value = request_via(
+        harness_sync_native::managed_bridge::Operation::ConfirmReadback,
+        "confirm",
+        false,
+    )?;
+    Ok(value.get("confirmed").and_then(serde_json::Value::as_bool) == Some(true))
+}
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+fn recover() -> Result<String, String> {
+    let value = request_via(
+        harness_sync_native::managed_bridge::Operation::Recover,
+        "recover",
+        false,
+    )?;
+    ensure_helper_boolean(&value, "recovered")?;
+    Ok("recovered".into())
+}
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+fn ensure_helper_boolean(value: &serde_json::Value, field: &str) -> Result<(), String> {
+    if value.get(field).and_then(serde_json::Value::as_bool) == Some(true) {
+        Ok(())
+    } else {
+        Err("Managed helper did not confirm the requested operation".into())
+    }
+}
+
+#[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
+pub fn apply(_revision: String, _bundle: serde_json::Value) -> Result<serde_json::Value, String> {
+    Err("Managed Apply requires Linux x86_64".into())
+}
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 fn request_via(
     operation: harness_sync_native::managed_bridge::Operation,
     supervisor_operation: &str,
@@ -225,6 +273,7 @@ fn request_via(
     let timeout_seconds = if matches!(
         &operation,
         harness_sync_native::managed_bridge::Operation::Capture { consent: true }
+            | harness_sync_native::managed_bridge::Operation::PrepareApply { consent: true, .. }
     ) {
         180
     } else {
@@ -426,6 +475,12 @@ pub fn run(operation: &str) -> Result<String, String> {
     if !matches!(operation, "status" | "launch" | "recover") {
         return Err("Unsupported managed operation.".into());
     }
+    if operation == "recover" {
+        #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+        return recover();
+        #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
+        return Err("Managed sessions require Linux x86_64.".into());
+    }
     let mut cmd = Command::new("/usr/bin/bash");
     cmd.env_clear()
         .env("PATH", "/usr/bin")
@@ -478,7 +533,15 @@ pub fn run(operation: &str) -> Result<String, String> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let state = stdout.lines().last().unwrap_or_default().trim();
     match state {
-        s @ ("new" | "active" | "recovery" | "saved" | "recovered") => Ok(s.to_owned()),
+        "saved" if operation == "launch" => {
+            #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+            if confirm_readback()? {
+                return Ok("verified".into());
+            }
+            Ok("saved".into())
+        }
+        s @ ("new" | "active" | "recovery" | "awaiting-readback" | "verified" | "saved"
+        | "recovered") => Ok(s.to_owned()),
         _ => Err("The managed supervisor returned an unknown state.".into()),
     }
 }

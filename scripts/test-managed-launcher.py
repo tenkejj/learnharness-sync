@@ -61,6 +61,7 @@ def exercise(package, image, weston_root, host_display=False):
         folder.mkdir(mode=0o700)
     (home/"Applications").mkdir()
     shutil.copy2(image, home/"Applications/LearnHarness-0.6.1-x86_64.AppImage")
+    (home/"Applications/LearnHarness-0.6.1-x86_64.AppImage").chmod(0o700)
     env = {"HOME": str(home), "XDG_DATA_HOME": str(data), "XDG_RUNTIME_DIR": str(runtime),
            "PATH": "/usr/bin", "LANG": "C.UTF-8"}
     if host_display:
@@ -240,15 +241,20 @@ def exercise(package, image, weston_root, host_display=False):
             if display:
                 display.terminate()
                 display.wait(timeout=15)
-    run_acceptance()
-    # Only the mapped test identity can dispose of subvolumes it created.
     try:
-        vault('for dir in session.*; do btrfs property set -ts "$dir" ro false; '
-              'btrfs subvolume delete "$dir" >/dev/null; done; '
-              'rm -- current interrupted.*; cd /slot; rmdir vault')
-        shutil.rmtree(root)
-    except subprocess.CalledProcessError:
-        print(f"Disposable Btrfs test vault retained for administrator cleanup: {root}")
+        run_acceptance()
+    finally:
+        # Only the mapped test identity may dispose of this invocation's
+        # private vault. A held supervisor lock refuses cleanup.
+        try:
+            vault('exec 9<.; flock -n 9; '
+                  'for dir in session.*; do btrfs property set -ts "$dir" ro false; '
+                  'btrfs subvolume delete "$dir" >/dev/null; done; '
+                  'rm -f -- current active apply.pending.json current.next interrupted.*; '
+                  'cd /slot; rmdir vault')
+            shutil.rmtree(root)
+        except subprocess.CalledProcessError:
+            print(f"Disposable Btrfs test vault retained for administrator cleanup: {root}")
 
 
 if __name__ == "__main__":

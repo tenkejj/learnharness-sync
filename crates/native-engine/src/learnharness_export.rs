@@ -29,6 +29,158 @@ pub struct ExportManifest {
     pub files: Vec<FileRecord>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct QuarantinedRevision {
+    pub revision: String,
+    pub files: usize,
+    pub bytes: u64,
+}
+
+pub fn bundle_value(manifest: &ExportManifest, payload: &Payload) -> Result<serde_json::Value> {
+    use base64::Engine as _;
+    verify(manifest, payload)?;
+    let records: Vec<_> = payload
+        .iter()
+        .map(|(path, bytes)| {
+            serde_json::json!({
+                "path": path,
+                "data": base64::engine::general_purpose::STANDARD.encode(bytes),
+            })
+        })
+        .collect();
+    Ok(serde_json::json!({"manifest":manifest,"records":records}))
+}
+
+pub fn parse_bundle(value: &serde_json::Value) -> Result<(ExportManifest, Payload)> {
+    use base64::Engine as _;
+    let object = value
+        .as_object()
+        .context("Managed export bundle is not an object")?;
+    ensure!(
+        object.len() == 2,
+        "Unsupported managed export bundle fields"
+    );
+    let manifest: ExportManifest = serde_json::from_value(
+        object
+            .get("manifest")
+            .context("Managed export manifest missing")?
+            .clone(),
+    )?;
+    manifest.validate()?;
+    let rows = object
+        .get("records")
+        .and_then(serde_json::Value::as_array)
+        .context("Managed export records missing")?;
+    ensure!(
+        rows.len() == manifest.files.len(),
+        "Managed export inventory is incomplete"
+    );
+    let mut payload = Payload::new();
+    for row in rows {
+        let record = row.as_object().context("Malformed managed export record")?;
+        ensure!(
+            record.len() == 2,
+            "Unsupported managed export record fields"
+        );
+        let path = record
+            .get("path")
+            .and_then(serde_json::Value::as_str)
+            .context("Managed export path missing")?
+            .to_owned();
+        let data = record
+            .get("data")
+            .and_then(serde_json::Value::as_str)
+            .context("Managed export bytes missing")?;
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(data)
+            .context("Malformed managed export encoding")?;
+        ensure!(
+            payload.insert(path, bytes).is_none(),
+            "Duplicate managed export path"
+        );
+    }
+    verify(&manifest, &payload)?;
+    Ok((manifest, payload))
+}
+
+pub fn load(root: &Path, revision: &str) -> Result<(ExportManifest, Payload)> {
+    ensure!(valid_hash(revision), "Invalid quarantined revision id");
+    let quarantine = root.join("quarantine/learnharness-0.6.1");
+    let target = quarantine.join(revision);
+    crate::storage::safe_path(&target)?;
+    let stored: ExportManifest = serde_json::from_slice(&crate::storage::read(
+        &target.join("manifest.json"),
+        crate::storage::MAX_METADATA,
+    )?)?;
+    ensure!(
+        stored.revision == revision,
+        "Quarantined manifest does not match its address"
+    );
+    let expected_directories: BTreeSet<_> = stored
+        .files
+        .iter()
+        .filter_map(|f| f.path.split_once('/').map(|(d, _)| d.to_owned()))
+        .collect();
+    let actual: BTreeSet<_> = fs::read_dir(&target)?
+        .map(|e| e.map(|v| v.file_name().to_string_lossy().into_owned()))
+        .collect::<std::io::Result<_>>()?;
+    let mut inventory = expected_directories.clone();
+    inventory.insert("manifest.json".to_owned());
+    ensure!(
+        actual == inventory,
+        "Quarantined revision has an unexpected directory inventory"
+    );
+    let mut payload = Payload::new();
+    for record in &stored.files {
+        let bytes = crate::storage::read(&target.join(&record.path), MAX_FILE)?;
+        ensure!(
+            payload.insert(record.path.clone(), bytes).is_none(),
+            "Duplicate quarantined record"
+        );
+    }
+    verify(&stored, &payload)?;
+    for dir in expected_directories {
+        let expected: BTreeSet<_> = stored
+            .files
+            .iter()
+            .filter_map(|f| f.path.strip_prefix(&format!("{dir}/")).map(str::to_owned))
+            .collect();
+        let actual: BTreeSet<_> = fs::read_dir(target.join(&dir))?
+            .map(|e| e.map(|v| v.file_name().to_string_lossy().into_owned()))
+            .collect::<std::io::Result<_>>()?;
+        ensure!(
+            actual == expected,
+            "Quarantined revision contains an unexpected file"
+        );
+    }
+    Ok((stored, payload))
+}
+
+pub fn list(root: &Path) -> Result<Vec<QuarantinedRevision>> {
+    let quarantine = root.join("quarantine/learnharness-0.6.1");
+    if !quarantine.exists() {
+        return Ok(Vec::new());
+    }
+    let mut items = Vec::new();
+    for entry in fs::read_dir(&quarantine)? {
+        let entry = entry?;
+        let meta = fs::symlink_metadata(entry.path())?;
+        ensure!(
+            meta.is_dir() && !meta.file_type().is_symlink(),
+            "Unsafe quarantine entry"
+        );
+        let revision = entry.file_name().to_string_lossy().into_owned();
+        let (manifest, _) = load(root, &revision)?;
+        items.push(QuarantinedRevision {
+            revision,
+            files: manifest.files.len(),
+            bytes: manifest.files.iter().map(|f| f.size).sum(),
+        });
+    }
+    items.sort_by(|a, b| a.revision.cmp(&b.revision));
+    Ok(items)
+}
+
 impl ExportManifest {
     pub fn from_payload(payload: &Payload) -> Result<Self> {
         validate_payload(payload)?;

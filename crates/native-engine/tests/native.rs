@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use harness_sync_core::{sha256, Decision, Manifest};
 use harness_sync_native::{
     adapter,
@@ -103,6 +103,201 @@ fn valid_learnharness_payload() -> std::collections::BTreeMap<String, Vec<u8>> {
         ("graph/positions.json", br#"{"positions":{"n_export":{"x":1.0,"y":2.0}},"updatedAt":"2026-11-24T10:00:00.000Z"}"#.to_vec()),
     ];
     rows.into_iter().map(|(p, b)| (p.to_owned(), b)).collect()
+}
+
+#[test]
+fn managed_merge_preserves_both_chat_branches_and_rejects_identity_edits() -> Result<()> {
+    let base = valid_learnharness_payload();
+    let mut local = base.clone();
+    let mut incoming = base.clone();
+    for (payload, id, body, timestamp) in [
+        (
+            &mut local,
+            "msg_local_1234abcd",
+            "local branch ✓",
+            1795514401000i64,
+        ),
+        (
+            &mut incoming,
+            "msg_remote_1234abcd",
+            "remote branch 🌍",
+            1795514402000i64,
+        ),
+    ] {
+        let mut chat: serde_json::Value =
+            serde_json::from_slice(&payload["chats/chat_abc123_1234abcd.json"])?;
+        chat["messages"].as_array_mut().unwrap().push(json!({
+            "role":"user", "id":id, "content":body, "timestamp":timestamp
+        }));
+        chat["updatedAt"] = json!("2026-11-24T10:00:02.000Z");
+        payload.insert(
+            "chats/chat_abc123_1234abcd.json".into(),
+            serde_json::to_vec(&chat)?,
+        );
+    }
+
+    let merged = harness_sync_native::managed_profile::merge_records(&local, &incoming)?;
+    harness_sync_native::learnharness_export::validate_payload(&merged)?;
+    let chat: serde_json::Value =
+        serde_json::from_slice(&merged["chats/chat_abc123_1234abcd.json"])?;
+    let ids: Vec<_> = chat["messages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|row| row["id"].as_str().unwrap())
+        .collect();
+    assert!(ids.contains(&"msg_local_1234abcd"));
+    assert!(ids.contains(&"msg_remote_1234abcd"));
+
+    let mut conflicting = incoming;
+    let mut chat: serde_json::Value =
+        serde_json::from_slice(&conflicting["chats/chat_abc123_1234abcd.json"])?;
+    chat["messages"][0]["content"] = json!("same identity, different bytes");
+    conflicting.insert(
+        "chats/chat_abc123_1234abcd.json".into(),
+        serde_json::to_vec(&chat)?,
+    );
+    assert!(harness_sync_native::managed_profile::merge_records(&local, &conflicting).is_err());
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+#[ignore = "Requires running inside the managed mapped-UID vault so Btrfs cleanup is permitted"]
+fn btrfs_managed_apply_creates_independent_backup_and_recovers_unverified_generation() -> Result<()>
+{
+    use std::{fs, os::unix::fs::PermissionsExt, process::Command};
+
+    let temp = tempfile::Builder::new()
+        .prefix("learnharness-apply-test-")
+        .tempdir_in(concat!(env!("CARGO_MANIFEST_DIR"), "/../../target"))?;
+    let vault = temp.path().join("vault");
+    fs::create_dir(&vault)?;
+    fs::set_permissions(&vault, fs::Permissions::from_mode(0o700))?;
+    let generation = format!(
+        "session.{}",
+        std::fs::read_to_string("/proc/sys/kernel/random/uuid")?.trim()
+    );
+    let old = vault.join(&generation);
+    let create = Command::new("btrfs")
+        .args(["subvolume", "create"])
+        .arg(&old)
+        .output()?;
+    if !create.status.success() {
+        eprintln!(
+            "Btrfs apply test unavailable: {}",
+            String::from_utf8_lossy(&create.stderr)
+        );
+        return Ok(());
+    }
+    let backups = vault.join("backups");
+    fs::create_dir(&backups)?;
+    fs::set_permissions(&backups, fs::Permissions::from_mode(0o700))?;
+    let initial = valid_learnharness_payload();
+    let initial_tree =
+        harness_sync_native::managed_profile::Tree::from_records(initial.clone(), None)?;
+    let data = old.join("config/LearnHarness/data");
+    fs::create_dir_all(data.parent().unwrap())?;
+    initial_tree.copy_to(&data)?;
+    Command::new("btrfs")
+        .args(["property", "set", "-ts"])
+        .arg(&old)
+        .args(["ro", "true"])
+        .output()?
+        .status
+        .success()
+        .then_some(())
+        .context("Could not make test source generation immutable")?;
+    fs::write(vault.join("current"), format!("{generation}\n"))?;
+
+    let mut incoming = initial.clone();
+    let mut chat: serde_json::Value =
+        serde_json::from_slice(&incoming["chats/chat_abc123_1234abcd.json"])?;
+    chat["messages"].as_array_mut().unwrap().push(json!({
+        "role":"user", "id":"msg_incoming_1234abcd", "content":"incoming disposable branch", "timestamp":1795514403000i64
+    }));
+    chat["updatedAt"] = json!("2026-11-24T10:00:03.000Z");
+    incoming.insert(
+        "chats/chat_abc123_1234abcd.json".into(),
+        serde_json::to_vec(&chat)?,
+    );
+    let manifest = ExportManifest::from_payload(&incoming)?;
+    let revision = manifest.revision.clone();
+    fs::write(vault.join("active"), b"apply\n")?;
+    let receipt =
+        harness_sync_native::managed_profile::apply_incoming(&vault, &manifest, &incoming)?;
+    assert_eq!(receipt["state"], "awaiting_readback");
+    assert_eq!(fs::read(vault.join("active"))?, b"apply\n");
+
+    let applied_generation = fs::read_to_string(vault.join("current"))?.trim().to_owned();
+    assert_ne!(applied_generation, generation);
+    let applied = harness_sync_native::managed_profile::Tree::records(
+        &vault
+            .join(&applied_generation)
+            .join("config/LearnHarness/data"),
+    )?;
+    assert!(
+        String::from_utf8(applied["chats/chat_abc123_1234abcd.json"].clone())?
+            .contains("msg_incoming_1234abcd")
+    );
+    let backup = vault
+        .join("backups")
+        .join(receipt["backup"].as_str().unwrap());
+    assert_eq!(
+        fs::read(backup.join("config/LearnHarness/data/chats/chat_abc123_1234abcd.json"))?,
+        initial["chats/chat_abc123_1234abcd.json"]
+    );
+
+    let confirmation = harness_sync_native::managed_profile::confirm_readback(&vault, &revision)?;
+    assert_eq!(confirmation["confirmed"], true);
+    fs::write(vault.join("active"), b"apply\n")?;
+    let mut divergent = applied.clone();
+    let mut chat: serde_json::Value =
+        serde_json::from_slice(&divergent["chats/chat_abc123_1234abcd.json"])?;
+    chat["messages"].as_array_mut().unwrap().push(json!({
+        "role":"user", "id":"msg_second_1234abcd", "content":"unverified disposable branch", "timestamp":1795514404000i64
+    }));
+    chat["updatedAt"] = json!("2026-11-24T10:00:04.000Z");
+    divergent.insert(
+        "chats/chat_abc123_1234abcd.json".into(),
+        serde_json::to_vec(&chat)?,
+    );
+    let second_manifest = ExportManifest::from_payload(&divergent)?;
+    let second_revision = second_manifest.revision.clone();
+    fs::write(vault.join("active"), b"apply\n")?;
+    harness_sync_native::managed_profile::apply_incoming(&vault, &second_manifest, &divergent)?;
+    let second_generation = fs::read_to_string(vault.join("current"))?.trim().to_owned();
+    assert_ne!(second_generation, applied_generation);
+    let recovered = harness_sync_native::managed_profile::recover_transaction(&vault)?;
+    assert_eq!(recovered["outcome"], "rolled_back_unverified_apply");
+    assert_eq!(
+        fs::read_to_string(vault.join("current"))?.trim(),
+        applied_generation
+    );
+    assert!(harness_sync_core::valid_id(&second_revision));
+
+    // Remove only the exact disposable subvolumes created by this test.
+    for path in [
+        old.clone(),
+        vault.join(&applied_generation),
+        vault.join(&second_generation),
+        backup,
+    ] {
+        if path.exists() {
+            let _ = Command::new("btrfs")
+                .args(["subvolume", "delete"])
+                .arg(&path)
+                .status()?;
+        }
+    }
+    for entry in fs::read_dir(&backups)? {
+        let path = entry?.path();
+        let _ = Command::new("btrfs")
+            .args(["subvolume", "delete"])
+            .arg(path)
+            .status()?;
+    }
+    Ok(())
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]

@@ -11,19 +11,44 @@ export function ManagedSession() {
   const [peers, setPeers] = useState<{ id: string; name: string }[]>([]);
   const [peer, setPeer] = useState("");
   const [exportConsent, setExportConsent] = useState(false);
-  const [exportReceipt, setExportReceipt] = useState<{ files: number; bytes: number; applied: false } | null>(null);
+  const [exportReceipt, setExportReceipt] = useState<{
+    files: number;
+    bytes: number;
+    applied: false;
+  } | null>(null);
+  const [staged, setStaged] = useState<
+    { revision: string; files: number; bytes: number }[]
+  >([]);
+  const [applyRevision, setApplyRevision] = useState("");
   const { busy, error, run } = useOperation();
+  const idle = state === "saved" || state === "verified";
   useEffect(() => {
     let live = true;
     async function refresh() {
       try {
         const value = await command<string>("managed_status");
-        const status = await command<{ transport?: { peers?: { id: string; name: string; trusted?: boolean }[] } }>("status");
-        const paired = (status.transport?.peers ?? []).filter((p) => p.trusted !== false).map(({ id, name }) => ({ id, name }));
+        const status = await command<{
+          transport?: {
+            peers?: { id: string; name: string; trusted?: boolean }[];
+          };
+          managed_exports?: {
+            revision: string;
+            files: number;
+            bytes: number;
+          }[];
+        }>("status");
+        const paired = (status.transport?.peers ?? [])
+          .filter((p) => p.trusted !== false)
+          .map(({ id, name }) => ({ id, name }));
         if (live) {
           setState(value);
           setPeers(paired);
-          setPeer((current) => paired.some((p) => p.id === current) ? current : paired[0]?.id ?? "");
+          setStaged(status.managed_exports ?? []);
+          setPeer((current) =>
+            paired.some((p) => p.id === current)
+              ? current
+              : (paired[0]?.id ?? ""),
+          );
           setStatusError("");
         }
       } catch (e) {
@@ -51,7 +76,11 @@ export function ManagedSession() {
             ? "Recovery required. The interrupted session will be retained separately."
             : state === "saved"
               ? "Managed session saved locally."
-              : ""}
+              : state === "awaiting-readback"
+                ? "Received data is applied to the managed profile. Open LearnHarness and close it cleanly to verify the application readback."
+                : state === "verified"
+                  ? "LearnHarness reopened and verified the applied conversation and graph data."
+                  : ""}
       </p>
       {state === "recovery" && (
         <label className="check-row">
@@ -88,7 +117,7 @@ export function ManagedSession() {
           ? "Recover managed session"
           : "Open managed LearnHarness"}
       </button>
-      {state === "saved" && (
+      {idle && (
         <button
           disabled={busy || !!statusError}
           onClick={() =>
@@ -100,27 +129,120 @@ export function ManagedSession() {
           Check managed snapshot
         </button>
       )}
-      {state === "saved" && peers.length > 0 && (
+      {idle && peers.length > 0 && (
         <div className="managed-export">
           <label htmlFor="managed-export-peer">Send a verified copy to</label>
-          <select id="managed-export-peer" value={peer} onChange={(e) => { setPeer(e.target.value); setExportReceipt(null); }} disabled={busy}>
-            {peers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          <select
+            id="managed-export-peer"
+            value={peer}
+            onChange={(e) => {
+              setPeer(e.target.value);
+              setExportReceipt(null);
+            }}
+            disabled={busy}
+          >
+            {peers.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
           </select>
           <label className="check-row">
-            <input type="checkbox" checked={exportConsent} onChange={(e) => setExportConsent(e.target.checked)} />
-            I authorize sending my managed conversations and supported knowledge graph records to this paired device. The receiver will stage a copy; it will not be applied automatically.
+            <input
+              type="checkbox"
+              checked={exportConsent}
+              onChange={(e) => setExportConsent(e.target.checked)}
+            />
+            I authorize sending my managed conversations and supported knowledge
+            graph records to this paired device. The receiver will stage a copy;
+            it will not be applied automatically.
           </label>
-          <button disabled={busy || !peer || !exportConsent || !!statusError} onClick={() => void run(async () => {
-            const result = await command<{ files: number; bytes: number; applied: false }>("managed_export", { device: peer, consent: true });
-            setExportReceipt(result);
-            setExportConsent(false);
-          })}>Send verified copy</button>
-          {exportReceipt && <p role="status">Transfer verified and staged on the paired device ({exportReceipt.files} files, {exportReceipt.bytes.toLocaleString()} bytes). This is not application-level synchronization; nothing was applied.</p>}
+          <button
+            disabled={busy || !peer || !exportConsent || !!statusError}
+            onClick={() =>
+              void run(async () => {
+                const result = await command<{
+                  files: number;
+                  bytes: number;
+                  applied: false;
+                }>("managed_export", { device: peer, consent: true });
+                setExportReceipt(result);
+                setExportConsent(false);
+              })
+            }
+          >
+            Send verified copy
+          </button>
+          {exportReceipt && (
+            <p role="status">
+              Transfer verified and staged on the paired device (
+              {exportReceipt.files} files,{" "}
+              {exportReceipt.bytes.toLocaleString()} bytes). This is not
+              application-level synchronization; nothing was applied.
+            </p>
+          )}
+        </div>
+      )}
+      {staged.length > 0 && (
+        <div className="managed-export">
+          <h4>Received LearnHarness data</h4>
+          <p>
+            Received revisions remain separate until you explicitly apply one.
+            Existing local history is retained and merged; conflicts are refused
+            for review.
+          </p>
+          {staged.map((revision) => (
+            <div className="managed-staged" key={revision.revision}>
+              <p>
+                {revision.files} files · {revision.bytes.toLocaleString()} bytes
+                · {revision.revision.slice(0, 12)}
+              </p>
+              <label className="check-row">
+                <input
+                  type="checkbox"
+                  checked={applyRevision === revision.revision}
+                  onChange={(e) =>
+                    setApplyRevision(e.target.checked ? revision.revision : "")
+                  }
+                />
+                I authorize applying this received LearnHarness revision to my
+                isolated managed profile.
+              </label>
+              <button
+                disabled={
+                  busy ||
+                  !!statusError ||
+                  !idle ||
+                  applyRevision !== revision.revision
+                }
+                onClick={() =>
+                  void run(async () => {
+                    const result = await command<{
+                      state: string;
+                      application_verified: false;
+                    }>("managed_apply", {
+                      revision: revision.revision,
+                      confirmed: true,
+                    });
+                    setApplyRevision("");
+                    setState(
+                      result.state === "awaiting_readback"
+                        ? "awaiting-readback"
+                        : "recovery",
+                    );
+                  })
+                }
+              >
+                Apply received data
+              </button>
+            </div>
+          ))}
         </div>
       )}
       {snapshot && (
         <p role="status">
-          Verified local LearnHarness snapshot: {snapshot.files} files, {snapshot.bytes} bytes.
+          Verified local LearnHarness snapshot: {snapshot.files} files,{" "}
+          {snapshot.bytes} bytes.
         </p>
       )}
       <ErrorNotice error={error || statusError} />

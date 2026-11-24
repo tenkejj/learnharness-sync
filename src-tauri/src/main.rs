@@ -14,6 +14,7 @@ enum Command {
     ManagedRecover,
     ManagedSnapshot,
     ManagedExport,
+    ManagedApply,
     Status,
     Settings,
     SaveSettings,
@@ -45,6 +46,7 @@ impl Command {
             Self::ManagedRecover => "managed_recover",
             Self::ManagedSnapshot => "managed_snapshot",
             Self::ManagedExport => "managed_export",
+            Self::ManagedApply => "managed_apply",
             Self::Status => "status",
             Self::Settings => "settings",
             Self::SaveSettings => "save_settings",
@@ -106,6 +108,30 @@ async fn engine_request(
             return tauri::async_runtime::spawn_blocking(managed::snapshot)
                 .await
                 .map_err(|_| "Managed snapshot helper stopped unexpectedly.")?;
+        }
+        if op == "apply" {
+            if args.get("confirmed") != Some(&Value::Bool(true)) {
+                return Err("Confirm applying this quarantined LearnHarness revision to the managed profile.".into());
+            }
+            let revision = args
+                .get("revision")
+                .and_then(Value::as_str)
+                .ok_or("Choose a quarantined LearnHarness revision")?
+                .to_owned();
+            let (manifest, payload) = state
+                .engine
+                .staged_managed(&revision)
+                .await
+                .map_err(|e| e.to_string())?;
+            let bundle =
+                harness_sync_native::learnharness_export::bundle_value(&manifest, &payload)
+                    .map_err(|e| e.to_string())?;
+            let result = tauri::async_runtime::spawn_blocking(move || {
+                managed::apply(manifest.revision, bundle)
+            })
+            .await
+            .map_err(|_| "Managed apply helper stopped unexpectedly.")??;
+            return Ok(result);
         }
         if op == "recover" && args.get("confirmed") != Some(&Value::Bool(true)) {
             return Err(
@@ -187,8 +213,39 @@ fn main() {
                         &generation.join("config/LearnHarness/data"),
                     )
                 }
+                harness_sync_native::managed_bridge::Operation::PrepareApply {
+                    head,
+                    bundle,
+                    consent: true,
+                } => {
+                    let vault = std::path::Path::new("/vault");
+                    anyhow::ensure!(
+                        std::fs::read(vault.join("active"))? == b"apply\n",
+                        "Managed apply is not exclusively active"
+                    );
+                    let (manifest, payload) =
+                        harness_sync_native::learnharness_export::parse_bundle(&bundle)?;
+                    anyhow::ensure!(
+                        manifest.revision == head,
+                        "Apply revision does not match its verified content"
+                    );
+                    harness_sync_native::managed_profile::apply_incoming(vault, &manifest, &payload)
+                }
+                harness_sync_native::managed_bridge::Operation::ConfirmReadback => {
+                    let vault = std::path::Path::new("/vault");
+                    anyhow::ensure!(
+                        std::fs::read(vault.join("active"))? == b"confirm\n",
+                        "Managed application readback is not exclusively active"
+                    );
+                    harness_sync_native::managed_profile::confirm_pending_readback(vault)
+                }
+                harness_sync_native::managed_bridge::Operation::Recover => {
+                    harness_sync_native::managed_profile::recover_transaction(std::path::Path::new(
+                        "/vault",
+                    ))
+                }
                 operation => Ok(serde_json::json!({
-                    "error": format!("Operation {operation:?} is not enabled in the read-only managed bridge")
+                    "error": format!("Operation {operation:?} is not enabled in the managed bridge")
                 })),
             },
         );

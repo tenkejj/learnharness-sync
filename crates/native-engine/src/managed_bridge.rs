@@ -21,11 +21,18 @@ const MAX_FRAME: usize = 180 * 1024 * 1024;
 pub enum Operation {
     Status,
     Snapshot,
-    Capture { consent: bool },
-    ValidateIncoming { head: String },
-    PrepareApply { head: String },
-    CommitApply { head: String },
-    ConfirmReadback { head: String },
+    Capture {
+        consent: bool,
+    },
+    ValidateIncoming {
+        head: String,
+    },
+    PrepareApply {
+        head: String,
+        bundle: Value,
+        consent: bool,
+    },
+    ConfirmReadback,
     Recover,
 }
 
@@ -96,8 +103,8 @@ pub unsafe fn server_from_fd(fd: i32) -> Result<Server> {
 
 impl Client {
     pub fn request(&mut self, operation: Operation) -> Result<Value> {
-        if matches!(operation, Operation::Capture { consent: false }) {
-            anyhow::bail!("Explicit consent is required before exporting conversations");
+        if requires_consent(&operation) {
+            anyhow::bail!("Explicit user confirmation is required for this managed-data operation");
         }
         let id = crate::storage::nonce()?;
         let request = Request {
@@ -121,8 +128,8 @@ impl<R: Read, W: Write> StdioClient<R, W> {
     }
 
     pub fn request(&mut self, operation: Operation) -> Result<Value> {
-        if matches!(operation, Operation::Capture { consent: false }) {
-            anyhow::bail!("Explicit consent is required before exporting conversations");
+        if requires_consent(&operation) {
+            anyhow::bail!("Explicit user confirmation is required for this managed-data operation");
         }
         let id = crate::storage::nonce()?;
         write_frame(
@@ -161,8 +168,8 @@ impl Server {
                 && request.id.bytes().all(|b| b.is_ascii_hexdigit()),
             "Invalid managed IPC request"
         );
-        if matches!(request.operation, Operation::Capture { consent: false }) {
-            anyhow::bail!("Explicit consent is required before exporting conversations");
+        if requires_consent(&request.operation) {
+            anyhow::bail!("Explicit user confirmation is required for this managed-data operation");
         }
         let result = operation(request.operation)?;
         write_frame(
@@ -198,8 +205,8 @@ where
             && request.id.bytes().all(|b| b.is_ascii_hexdigit()),
         "Invalid managed IPC request"
     );
-    if matches!(request.operation, Operation::Capture { consent: false }) {
-        anyhow::bail!("Explicit consent is required before exporting conversations");
+    if requires_consent(&request.operation) {
+        anyhow::bail!("Explicit user confirmation is required for this managed-data operation");
     }
     let result = operation(request.operation)?;
     write_frame(
@@ -209,6 +216,13 @@ where
             id: request.id,
             result,
         })?,
+    )
+}
+
+fn requires_consent(operation: &Operation) -> bool {
+    matches!(
+        operation,
+        Operation::Capture { consent: false } | Operation::PrepareApply { consent: false, .. }
     )
 }
 
