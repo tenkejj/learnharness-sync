@@ -445,28 +445,65 @@ fn qa_real_app_session(operation: &str) -> Result<String, String> {
     if !matches!(operation, "qa-populate" | "qa-extend") {
         return Err("Unsupported disposable LearnHarness test operation".into());
     }
-    let qa_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .ok_or("Managed application test assets are unavailable")?
-        .canonicalize()
-        .map_err(|_| "Managed application test assets are unavailable")?;
+    let packaged_assets = std::env::var_os("APPDIR")
+        .map(|appdir| PathBuf::from(appdir).join("usr/lib/LearnHarness Sync/acceptance"));
+    struct DisposableAssets(PathBuf);
+    impl Drop for DisposableAssets {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+    let staged_assets = if let Some(source) = packaged_assets.as_ref() {
+        use std::os::unix::fs::PermissionsExt;
+        let path = std::env::temp_dir().join(format!(
+            "learnharness-sync-acceptance-{}",
+            harness_sync_native::storage::nonce().map_err(|_| "Could not stage test assets")?
+        ));
+        std::fs::create_dir(&path).map_err(|_| "Could not stage test assets")?;
+        let staged = DisposableAssets(path.clone());
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755))
+            .map_err(|_| "Could not stage test assets")?;
+        let copied = Command::new("/usr/bin/cp")
+            .arg("-a")
+            .arg(source.join("."))
+            .arg(&path)
+            .status()
+            .map_err(|_| "Could not copy packaged test assets")?;
+        if !copied.success() {
+            return Err("Could not copy packaged test assets".into());
+        }
+        Some(staged)
+    } else {
+        None
+    };
+    let qa_root = match packaged_assets {
+        Some(_) => staged_assets.as_ref().unwrap().0.clone(),
+        None => PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .ok_or("Managed application test assets are unavailable")?
+            .to_path_buf(),
+    }
+    .canonicalize()
+    .map_err(|_| "Managed application test assets are unavailable")?;
     let close_window = qa_root.join("build/managed-close-window");
-    let compiled = Command::new("/usr/bin/cc")
-        .args([
-            "-Wall",
-            "-Werror",
-            qa_root
-                .join("tests/learnharness/close-window.c")
-                .to_str()
-                .ok_or("Invalid managed application test path")?,
-            "-lX11",
-            "-o",
-        ])
-        .arg(&close_window)
-        .status()
-        .map_err(|_| "Could not build the disposable LearnHarness window closer")?;
-    if !compiled.success() {
-        return Err("Could not build the disposable LearnHarness window closer".into());
+    if std::env::var_os("APPDIR").is_none() {
+        let compiled = Command::new("/usr/bin/cc")
+            .args([
+                "-Wall",
+                "-Werror",
+                qa_root
+                    .join("tests/learnharness/close-window.c")
+                    .to_str()
+                    .ok_or("Invalid managed application test path")?,
+                "-lX11",
+                "-o",
+            ])
+            .arg(&close_window)
+            .status()
+            .map_err(|_| "Could not build the disposable LearnHarness window closer")?;
+        if !compiled.success() {
+            return Err("Could not build the disposable LearnHarness window closer".into());
+        }
     }
     let mut cmd = Command::new("/usr/bin/bash");
     cmd.env_clear()

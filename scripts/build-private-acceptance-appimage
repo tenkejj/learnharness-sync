@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+mkdir -p build
+cc -Wall -Werror tests/learnharness/close-window.c -lX11 -o build/managed-close-window
+chmod 755 build/managed-close-window
+CARGO_TARGET_DIR=target/acceptance npm run tauri -- build \
+  --config src-tauri/tauri.acceptance.conf.json \
+  --features managed-acceptance --bundles appimage
+version=$(node -p "require('./package.json').version")
+mkdir -p -m 700 build/private-acceptance
+install -m 700 \
+  "src-tauri/target/acceptance/release/bundle/appimage/LearnHarness Sync_${version}_amd64.AppImage" \
+  "build/private-acceptance/LearnHarness-Sync_${version}_PRIVATE-ACCEPTANCE.AppImage"
+sha256sum "build/private-acceptance/LearnHarness-Sync_${version}_PRIVATE-ACCEPTANCE.AppImage"
+printf '%s\n' 'Private acceptance artifact only. Never upload this feature-enabled AppImage to a public release.'

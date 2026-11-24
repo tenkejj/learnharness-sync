@@ -3,7 +3,7 @@
     {
       "artifact": "target/release/bundle/appimage/LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage",
       "bytes": 110623224,
-      "sha256": "933714a37e5829683a47b9a5d9929014da5c550145d0adc219cff62137cb5775",
+      "sha256": "eb8a4c89369c19ade0761a28d503bad6a4aff0d89331937f7b8282830b924c0c",
       "extracted_regular_files": 423,
       "external_engine_or_private_state_files": false,
       "targeted_credentials_found": false,
@@ -67,8 +67,8 @@
     },
     {
       "artifact": "target/release/bundle/deb/LearnHarness-Sync_0.2.0-alpha.1_amd64.deb",
-      "bytes": 7073768,
-      "sha256": "7415df768f7f734078e640065ac0e34370cf33223d5b2e1e96ffef1c9f01e8d2",
+      "bytes": 7073772,
+      "sha256": "aab156ffdeea55509175c8a96aad853153bba28d84ebf65d1e1e14d520153134",
       "extracted_regular_files": 10,
       "external_engine_or_private_state_files": false,
       "targeted_credentials_found": false,
@@ -76,8 +76,8 @@
     },
     {
       "artifact": "target/release/bundle/rpm/LearnHarness-Sync-0.2.0-alpha.1-1.x86_64.rpm",
-      "bytes": 7079555,
-      "sha256": "f4c615a5ef4425d3384712a517d499af9b42b36c471ff58067b937f01c7e3d9c",
+      "bytes": 7079556,
+      "sha256": "60d795d31fb26a33a8bf2716511172c8ee0d84892aeb384ea342aba10d3cfa2d",
       "extracted_regular_files": 9,
       "external_engine_or_private_state_files": false,
       "targeted_credentials_found": false,

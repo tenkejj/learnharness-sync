@@ -19,6 +19,15 @@ assets=(
   "deb/LearnHarness-Sync_${version}_amd64.deb"
   "rpm/LearnHarness-Sync-${version}-1.x86_64.rpm"
 )
+# A feature-enabled private acceptance build must never become a release asset.
+set +e
+console_message=$("target/release/bundle/${assets[0]}" --managed-acceptance-peer 2>&1)
+console_status=$?
+set -e
+if [[ $console_status -ne 64 || $console_message != *'test-only peer console is absent from production builds'* ]]; then
+  echo 'Refusing to package an AppImage with the private acceptance console.' >&2
+  exit 1
+fi
 (
   cd target/release/bundle
   sha256sum "${assets[@]}" > SHA256SUMS

@@ -1,5 +1,5 @@
 {
-  "appimage_sha256": "933714a37e5829683a47b9a5d9929014da5c550145d0adc219cff62137cb5775",
+  "appimage_sha256": "eb8a4c89369c19ade0761a28d503bad6a4aff0d89331937f7b8282830b924c0c",
   "elf_files": [
     {
       "path": "AppRun.wrapped",

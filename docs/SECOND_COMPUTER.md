@@ -9,7 +9,7 @@ identities and trust pins are kept when you update the application.
 The ordinary, no-acceptance-feature candidate is
 `target/release/bundle/appimage/LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage`
 in the repository checkout. Its SHA-256 is
-`933714a37e5829683a47b9a5d9929014da5c550145d0adc219cff62137cb5775`.
+`eb8a4c89369c19ade0761a28d503bad6a4aff0d89331937f7b8282830b924c0c`.
 This is a private physical-test candidate, not a published release. Copy only
 the AppImage to Downloads on both computers using USB or another trusted
 channel. Do not copy application profiles, native stores or backups.
@@ -18,7 +18,7 @@ Copy the AppImage to a folder you control on each computer. From that folder:
 
 ```sh
 chmod +x LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage
-printf '%s  %s\n' '933714a37e5829683a47b9a5d9929014da5c550145d0adc219cff62137cb5775' 'LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage' | sha256sum -c -
+printf '%s  %s\n' 'eb8a4c89369c19ade0761a28d503bad6a4aff0d89331937f7b8282830b924c0c' 'LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage' | sha256sum -c -
 ./LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage
 ```
 

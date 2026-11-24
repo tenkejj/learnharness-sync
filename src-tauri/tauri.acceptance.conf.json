@@ -1,0 +1,15 @@
+{
+  "bundle": {
+    "resources": {
+      "../LICENSE": "licenses/LearnHarness-Sync-MIT.txt",
+      "../NOTICE": "licenses/NOTICE.txt",
+      "../public/fonts/OFL-Manrope.txt": "licenses/Manrope-OFL.txt",
+      "../tests/learnharness/probe.mjs": "acceptance/tests/learnharness/probe.mjs",
+      "../tests/learnharness/provider.mjs": "acceptance/tests/learnharness/provider.mjs",
+      "../tests/learnharness/managed-manifest.mjs": "acceptance/tests/learnharness/managed-manifest.mjs",
+      "../build/managed-close-window": "acceptance/build/managed-close-window",
+      "../node_modules/playwright": "acceptance/node_modules/playwright",
+      "../node_modules/playwright-core": "acceptance/node_modules/playwright-core"
+    }
+  }
+}

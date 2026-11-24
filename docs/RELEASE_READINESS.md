@@ -1,6 +1,17 @@
 # Linux release status
 
+The owner [verified pairing and synthetic synchronization in both directions on
+two physical computers](evidence/physical-synthetic-owner-report.md) with the
+ordinary AppImage. Physical real LearnHarness A→B→A acceptance is still open,
+so the aggregate two-device release gate remains false.
+
 LearnHarness Sync is an experimental source project. The pinned LearnHarness 0.6.1 managed workflow now has packaged A→B→A application readback and transaction recovery evidence; see [PRODUCTION_SYNC_ACCEPTANCE.md](PRODUCTION_SYNC_ACCEPTANCE.md). Binary publication remains gated on physical-device acceptance and third-party dependency security, corresponding-source and license-notice reviews. Managed-profile writer exclusion and the tested schema adapter are qualified for the documented 0.6.1 contract; they do not certify arbitrary providers or profiles. [Managed sessions](MANAGED_LINUX.md) · [Name and artwork](NAME_SCREEN.md)
+
+The [November 25 packaged real-data rerun](evidence/packaged-real-roundtrip-2026-11-25.md)
+passed on one host. The [current dependency audit](evidence/dependency-audit-2026-11-25.md)
+reports zero npm and RustSec vulnerabilities, with one unresolved runtime
+unsoundness warning in the Tauri Linux GUI dependency chain. These results do
+not close the physical real-data or redistribution gates.
 
 ## Local install and dependency checks
 

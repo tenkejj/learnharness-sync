@@ -23,7 +23,7 @@ def until(probe, seconds=120):
 def descendants(pid):
     try:
         children = Path(f"/proc/{pid}/task/{pid}/children").read_text().split()
-    except (FileNotFoundError, PermissionError):
+    except (FileNotFoundError, PermissionError, ProcessLookupError):
         return
     for child in map(int, children):
         yield child
@@ -35,7 +35,7 @@ def find_child(process, name):
         try:
             if Path(f"/proc/{pid}/comm").read_text().strip() == name:
                 return pid
-        except (FileNotFoundError, PermissionError):
+        except (FileNotFoundError, PermissionError, ProcessLookupError):
             pass
     if process.poll() is not None:
         raise RuntimeError("Managed launcher exited before the window appeared")
@@ -48,7 +48,7 @@ def find_descendant_command(process, marker):
             comm = Path(f"/proc/{pid}/comm").read_text().strip()
             if comm == "helper" and marker in command:
                 return pid
-        except (FileNotFoundError, PermissionError):
+        except (FileNotFoundError, PermissionError, ProcessLookupError):
             pass
 
 
