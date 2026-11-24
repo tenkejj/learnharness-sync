@@ -1,6 +1,7 @@
 LearnHarness Sync source is independently written and licensed under MIT.
 LearnHarness is a separate project. This unofficial companion is not endorsed
-by LearnHarness. No production format compatibility is certified.
+by LearnHarness. Compatibility is limited to the tested LearnHarness 0.6.1
+Linux x86_64 managed-profile contract documented by this project.
 
 The approved LearnHarness Sync logo was generated specifically for the project owner
 using OpenAI's ChatGPT image generation. The owner authorizes redistribution of

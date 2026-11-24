@@ -1,0 +1,3377 @@
+{
+  "appimage_sha256": "933714a37e5829683a47b9a5d9929014da5c550145d0adc219cff62137cb5775",
+  "elf_files": [
+    {
+      "path": "AppRun.wrapped",
+      "sha256": "f30140a43a0a59e46db21bdefdf749b9e9f2c6946e92afabbacf98b8ae73fb4f",
+      "build_id": "84fe6e2b121f245ed5b8c05ccafe2dc1d45a9f37",
+      "host_matches": []
+    },
+    {
+      "path": "usr/bin/learnharness-sync",
+      "sha256": "fb7ce37c3d3aa0b621f8b5acda4a3aed41ce7e197d545a274dd029a89c6e71ad",
+      "build_id": "0b6cb75ea7d9c0054ea1a58f87ec41061b525bc1",
+      "host_matches": []
+    },
+    {
+      "path": "usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/io-wmf.so",
+      "sha256": "99abfc2ee9f6442866d087251a08806e4340831bf65c0edcdcd202cdf1a89f98",
+      "build_id": "a003fd7c41f5d7ef6fc2a3117a1579c254aec2ac",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/io-wmf.so",
+          "package": "libwmf",
+          "version": "0.2.17-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gio/modules/libdconfsettings.so",
+      "sha256": "55fe19753f8d6338f90f1b212d76fc688d33aa77f55ae0ec12db8d664c990d89",
+      "build_id": "7a678cec2bc088e70d24032df5557e73a9c5acd9",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gio/modules/libdconfsettings.so",
+          "package": "dconf",
+          "version": "51.0-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gio/modules/libgiognomeproxy.so",
+      "sha256": "34e2068d6d78540ef066835f34c2e1f1888a2e43adec0d6b4bd5cbe27581252b",
+      "build_id": "641c775cb42441123ecef71e9614af4e2243bcc9",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gio/modules/libgiognomeproxy.so",
+          "package": "glib-networking",
+          "version": "1:2.90.0-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gio/modules/libgiognutls.so",
+      "sha256": "ffe41d354942c355382859994d3c6eed3c771111cb3c4f03ff0c323d922b45a1",
+      "build_id": "82ae3cdc20f502ed7e1641646e1d39bad5dd6415",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gio/modules/libgiognutls.so",
+          "package": "glib-networking",
+          "version": "1:2.90.0-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gio/modules/libgiolibproxy.so",
+      "sha256": "17921c754d92324d0cdd12c9e3c8ba46bda019510fd332533f2492fad3e3bb98",
+      "build_id": "c3b1ff435ab6e073f626f4c875181b256db7d2e8",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gio/modules/libgiolibproxy.so",
+          "package": "glib-networking",
+          "version": "1:2.90.0-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gio/modules/libgioremote-volume-monitor.so",
+      "sha256": "75bcc7d1aa36c28e427100cbfb4affc67dcd1911948bcc385f1e9ea561cb22c7",
+      "build_id": "97fa6dd6c3e0a6459034d78f558d1e59d59f2e2e",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gio/modules/libgioremote-volume-monitor.so",
+          "package": "gvfs",
+          "version": "1.62.0-3",
+          "licenses": [
+            "LGPL-2.0-only"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gio/modules/libgvfsdbus.so",
+      "sha256": "63aff9f73aff0b78ed01d362fbeeea3f18086d9ceec99c72635ba95693c35633",
+      "build_id": "3cb5d13b25d55937345f46abfde5ad8c492d0431",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gio/modules/libgvfsdbus.so",
+          "package": "gvfs",
+          "version": "1.62.0-3",
+          "licenses": [
+            "LGPL-2.0-only"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-am-et.so",
+      "sha256": "0178dc7a7c1ddafcdade6cc6515899c672499c7eda7395a49eea33dc54853c2b",
+      "build_id": "996f1bbd56e49e461312bd9db163b08e75e4bfb2",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-am-et.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-broadway.so",
+      "sha256": "570f79b0b4b155faad4287f5c9c268953282ce54b1eeb5b4eff1b34428d9ac58",
+      "build_id": "2da88fc5bdd82c19cb9ee3e59e4334dfd3eeeb74",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-broadway.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-cedilla.so",
+      "sha256": "704cededb32eb9d0a75314492fc5910dcd1ee902c4ffee230647cc0258626381",
+      "build_id": "185b1db35672e20ac9f0d4c14ddd85562148aa48",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-cedilla.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-cyrillic-translit.so",
+      "sha256": "aab50347d115ce4a26f22c424062f768fe2f37745f6d306c0a3165e000c4a0e5",
+      "build_id": "d323d2aeaec8b800b0303b98d7e80f6c7e9a9538",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-cyrillic-translit.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-fcitx5.so",
+      "sha256": "7d847b0b13b2b9c067bbece74e43d63f30ba209c8f323d15130b568e9fda3218",
+      "build_id": "150a2fea8a799af76def45fd60ad719361fe1ef3",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-fcitx5.so",
+          "package": "fcitx5-gtk",
+          "version": "5.1.7-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-inuktitut.so",
+      "sha256": "19d9659d54412c9dda0b80da80346e8eb4116f95a41f11f702e5bf8bf0c41c86",
+      "build_id": "56731801bf3e6248e6c0a4cc25bb9a2ef3f82c5d",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-inuktitut.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-ipa.so",
+      "sha256": "8261a3cf339d7e688ce4a431fd4453a24a820ec21c877fb9263ba8824bcc210d",
+      "build_id": "352f9119ce2ec34b6d33cd998c8e36c77ac12791",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-ipa.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-multipress.so",
+      "sha256": "44a3566885f4666c60aeaa52a9150062c2e5fe9cce33606a90d1c8d068189a2e",
+      "build_id": "908c4bf512723af0e19ccb6d171432259ddcd3bc",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-multipress.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-thai.so",
+      "sha256": "5c62f3c94b5ec3cbfeb1123c5f999bbc0092a0e238960698db2f8ab15bd0a1b4",
+      "build_id": "5958e5a4e39c05149188b8ba77e51debca2180b9",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-thai.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-ti-er.so",
+      "sha256": "4db1fed98325f0bdf3c016a59feb3487ab0cf27d623d92348279a1610d65453b",
+      "build_id": "2e4394c799f282e248547041aaa6c7edd1fccbf0",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-ti-er.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-ti-et.so",
+      "sha256": "2b0869c0d73c534c0fd011a857c877de94dc4fc2dd8183920a530b04da74a479",
+      "build_id": "635dc379adb92a02d5e1d2fcd3db904551cedd10",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-ti-et.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-viqr.so",
+      "sha256": "f5ec9021d4217b420321ba2b72e39deac6d011fe01dd6284317861a4b608f457",
+      "build_id": "a1106a245703dbfa98ac8dc6d7b353ba1aea516b",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-viqr.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-wayland.so",
+      "sha256": "dd01b9700e0288e9698db68c33f53319e6abc46a03f3aba6cacaf36eaf5996db",
+      "build_id": "7b10f14cf44ad9e6d26f5c5f747b344ba81756a8",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-wayland.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/immodules/im-xim.so",
+      "sha256": "1694b996e1027fd83ba03716f6051efe6f58d66eebbe753f721d86cc52b3b7c4",
+      "build_id": "b508f4802ea04a26569eca1e74582750d6f6ed11",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/immodules/im-xim.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/printbackends/libprintbackend-cups.so",
+      "sha256": "9fa005be4ebdc536824462ce73a7d676654edbd13fd9fd4fb3fb9d23f68db4cc",
+      "build_id": "08c1e07c12cb9640c56e1ab07b58813568465a82",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/printbackends/libprintbackend-cups.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/printbackends/libprintbackend-file.so",
+      "sha256": "dca5041cfd30b756b58c814f5000c4af3da4e1f233891aa9b2c27827469a3140",
+      "build_id": "e3f196354445f29e631fac9ee90700e019a57ed3",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/printbackends/libprintbackend-file.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/3.0.0/printbackends/libprintbackend-lpr.so",
+      "sha256": "9751ae0a68525d1aacb0e838c10cdf2298c4d8985b9dd7952671c59b13026fd7",
+      "build_id": "777dbaa422ce0e8135bf7acbd0b86a2eaf2f3493",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/3.0.0/printbackends/libprintbackend-lpr.so",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/gtk-3.0/modules/libcanberra-gtk3-module.so",
+      "sha256": "04c6991f3d66ad5efe84f87b2e1f45fda3b3f89c6bdc9720143a59c025f98b21",
+      "build_id": "c5f2042c8e5ae4083983e29669edda2390532be0",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gtk-3.0/modules/libcanberra-gtk3-module.so",
+          "package": "libcanberra",
+          "version": "1:0.30+r2+gc0620e4-6",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libFcitx5GClient.so.2",
+      "sha256": "3ea5e96742e17b666c8d532ac66459ccfdecfac09bb1e1bac8611b9c73357732",
+      "build_id": "418f6d697d6390cc1b06adb24d7caddd1db331fa",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libFcitx5GClient.so.2",
+          "package": "fcitx5-gtk",
+          "version": "5.1.7-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libSvtAv1Enc.so.4",
+      "sha256": "2ec0580d108b994436739f8a2bf0a64e6259b0b9de2e14d0428587a465ee3833",
+      "build_id": "75cff86c281f446fc0a519d836f5efa31f845da5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libSvtAv1Enc.so.4",
+          "package": "svt-av1",
+          "version": "4.2.0-1",
+          "licenses": [
+            "BSD-3-Clause",
+            "LicenseRef-AOMPL-1.0"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXau.so.6",
+      "sha256": "989c2ac09ea1cf53d67e272904e7404ac27089699269513bee70cac683fc8760",
+      "build_id": "70cbe26a6761a8cf3314e8ef19ddd9e1eaa3eef5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXau.so.6",
+          "package": "libxau",
+          "version": "1.0.12-1",
+          "licenses": [
+            "MIT-open-group"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXcomposite.so.1",
+      "sha256": "4def70fbf6371be47fd023d27333583817c214344ddc3ae59320f59efae26752",
+      "build_id": "edd9451bbca887c42816aef552cceffc79162fb3",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXcomposite.so.1",
+          "package": "libxcomposite",
+          "version": "0.4.7-1",
+          "licenses": [
+            "MIT",
+            "HPND-sell-variant"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXcursor.so.1",
+      "sha256": "8dd7aefcd6cd904ddf084c576a2e437c5cba1039770fb448943300de7bced0b6",
+      "build_id": "154203e1adcf252afb76bf247e0421aca5a0a6da",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXcursor.so.1",
+          "package": "libxcursor",
+          "version": "1.2.3-1",
+          "licenses": [
+            "HPND-sell-variant"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXdamage.so.1",
+      "sha256": "bbe9d6631f56e2c3d988837bcbf40b704bb797eac24008b4a6f2e641af22bd52",
+      "build_id": "a205c3c07e20ea65c50868e03932e43b681f4909",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXdamage.so.1",
+          "package": "libxdamage",
+          "version": "1.1.7-1",
+          "licenses": [
+            "HPND-sell-variant"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXdmcp.so.6",
+      "sha256": "e9e7007e2850d2a3ba57c827133998e35d1145247385e7bdfad6e36d08e97536",
+      "build_id": "ef29bec0993f6e65e270aed3b87388106475bbb6",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXdmcp.so.6",
+          "package": "libxdmcp",
+          "version": "1.1.5-2",
+          "licenses": [
+            "MIT-open-group"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXext.so.6",
+      "sha256": "28013d58af05c55b5bc6d6390e1ad75ebf331e689602afd34286318475ef59dd",
+      "build_id": "16d7d4e1dd9d8f04d5137d195260724de170e05f",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXext.so.6",
+          "package": "libxext",
+          "version": "1.3.7-1",
+          "licenses": [
+            "LicenseRef-libxext"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXfixes.so.3",
+      "sha256": "3ebd9252031c269f6acc797346c953d26f7aa91e59112a816f2eef24b8b7b551",
+      "build_id": "a1e89836fb947476c53f1aff3198b2890c0838bb",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXfixes.so.3",
+          "package": "libxfixes",
+          "version": "6.0.2-1",
+          "licenses": [
+            "MIT",
+            "HPND-sell-variant"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXi.so.6",
+      "sha256": "95ac81a2abf7e749e35ca4fc25cac5915686555ec41f7c40443b7eef7e2848a6",
+      "build_id": "37d382cc7c1c62f1ada02f05bfa2d08543ec941d",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXi.so.6",
+          "package": "libxi",
+          "version": "1.8.4-1",
+          "licenses": [
+            "MIT-open-group",
+            "SMLNJ",
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXinerama.so.1",
+      "sha256": "a7b609b0b1041aadc2b9b6a0be8aae23e0fd60f60dcd520a80ef35b1c66ee773",
+      "build_id": "eb4a92a40839995e83d5a0a1e3823a90da6f5269",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXinerama.so.1",
+          "package": "libxinerama",
+          "version": "1.1.6-1",
+          "licenses": [
+            "MIT",
+            "MIT-open-group",
+            "X11"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXrandr.so.2",
+      "sha256": "07749d7c98b2e8d7268172d933a6b1678c47854a851b96a9164d948e69075788",
+      "build_id": "d508f25ed71ec4dc14abdac3dcf89021088e263d",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXrandr.so.2",
+          "package": "libxrandr",
+          "version": "1.5.5-1",
+          "licenses": [
+            "HPND-sell-variant"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libXrender.so.1",
+      "sha256": "6e9f3dc2062a8ae29862b4f9d214c619bc27932011a307a443ee70fb24161370",
+      "build_id": "ef7bf512c9913b26b70180471fede2305b1299e8",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libXrender.so.1",
+          "package": "libxrender",
+          "version": "0.9.13-1",
+          "licenses": [
+            "HPND-sell-variant"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libaom.so.3",
+      "sha256": "ecc6a5922b5ccc39eb0ad92c37326353c3b3e8d3b29a4a534bdd016e18d6996c",
+      "build_id": "5e6b72e0f7b42d42b1ac9cc6700a1142bf7223f1",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libaom.so.3",
+          "package": "aom",
+          "version": "3.15.2-1",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libatk-1.0.so.0",
+      "sha256": "d0fb7c29db998cb9893de36c11fcfc10dff13467104ac068416b8d568f0fc1d5",
+      "build_id": "99ca0346d26518476ecc9fed8e6025e6b1b350a4",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libatk-1.0.so.0",
+          "package": "at-spi2-core",
+          "version": "2.62.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libatk-bridge-2.0.so.0",
+      "sha256": "d3fbc25a6ad0b7f9d531b46a2ccd1680adb8e03cf135dfacf7311700e1ffcf54",
+      "build_id": "bd35564f25bd73c5e953a70f23abffee5c30b9db",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libatk-bridge-2.0.so.0",
+          "package": "at-spi2-core",
+          "version": "2.62.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libatomic.so.1",
+      "sha256": "7c0338bebe3228694b16b547c484726ec94fd5231232bd52b8d555634e227378",
+      "build_id": "7272879af1a4de2ffcfff6c110e12b46c13413c5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libatomic.so.1",
+          "package": "libatomic",
+          "version": "16.2.1+r23+gd564253eb6c8-1",
+          "licenses": [
+            "GPL-3.0-or-later WITH GCC-exception-3.1",
+            "GFDL-1.3-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libatspi.so.0",
+      "sha256": "53a48415a26d0554a33bc1ac572f0124832a7f3634bfc70add3366ad681225f7",
+      "build_id": "29b6e69ca495be7ba96a0a681068e6d49bac4807",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libatspi.so.0",
+          "package": "at-spi2-core",
+          "version": "2.62.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libavahi-client.so.3",
+      "sha256": "7f6b8cd597d748fca1564367a105fb8e4139bab459638ecdfa29cf3c669e9a31",
+      "build_id": "c38b6f675f1f0339f291e4f72d308f1114482e26",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libavahi-client.so.3",
+          "package": "avahi",
+          "version": "1:0.9rc5-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libavahi-common.so.3",
+      "sha256": "d592db25359dd812616bdf06fb94f16f1a620531227cf67ab465092394a06fdd",
+      "build_id": "5111becfff8b4d65a9ce004338a5b7dcf0da916e",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libavahi-common.so.3",
+          "package": "avahi",
+          "version": "1:0.9rc5-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libavif.so.16",
+      "sha256": "96f084229b286279c1d8300246cba1a533eb91f8b72aef060c1f9fd3c0be0eeb",
+      "build_id": "22cd9f241fcdbcf3e8a95d0d421dc7111d6275d7",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libavif.so.16",
+          "package": "libavif",
+          "version": "1.4.2-1",
+          "licenses": [
+            "LicenseRef-libavif"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libblkid.so.1",
+      "sha256": "4a6d7fba07550fce053808be7742c5114ae1804d031ed1cc88d7e176119d2dcd",
+      "build_id": "0ccf23132afa07950c86c156ed293138bbac78c1",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libblkid.so.1",
+          "package": "util-linux-libs",
+          "version": "2.42.4-1",
+          "licenses": [
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "BSD-4-Clause-UC",
+            "GPL-2.0-only",
+            "GPL-2.0-or-later",
+            "GPL-3.0-or-later",
+            "ISC",
+            "LGPL-2.1-or-later",
+            "LicenseRef-PublicDomain"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libbrotlicommon.so.1",
+      "sha256": "2807ceb8b1ef3f46646daabe1382b7449e56c045e7db64840c53a063d5c26e76",
+      "build_id": "9804a48ad3409aa8e7b57f5a84e9e79baabe9a50",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libbrotlicommon.so.1",
+          "package": "brotli",
+          "version": "1.2.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libbrotlidec.so.1",
+      "sha256": "a6bc807425a0aa5a1c4080ea635dc35d141cfc7be39c5ce00e3d6e133c88dbdf",
+      "build_id": "43c22a95c433776a467facc9548afcd8ea52ff6a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libbrotlidec.so.1",
+          "package": "brotli",
+          "version": "1.2.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libbrotlienc.so.1",
+      "sha256": "24e2a66bf30d819ecdc82f942ab8e442d5470ed19d98e975f157c90de8750d70",
+      "build_id": "9d29e3d69f50191a22a1b7d868c74a649f396f99",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libbrotlienc.so.1",
+          "package": "brotli",
+          "version": "1.2.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libbz2.so.1.0",
+      "sha256": "69b3c788baed1f3b25ea450383474d99f7dac2a3d045c26ef447179827f77158",
+      "build_id": "0e264989dda1fec0cbd0cd452c5f5ebf23c625d7",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libbz2.so.1.0",
+          "package": "bzip2",
+          "version": "1.0.8-6",
+          "licenses": [
+            "BSD"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcairo-gobject.so.2",
+      "sha256": "e3d16410e428d4949551f5df52c56ecf9620ebe4d1177986f1c069e2fce11427",
+      "build_id": "3c45db8ef2dc671baea4401c43b32a959f893f36",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcairo-gobject.so.2",
+          "package": "cairo",
+          "version": "1.18.6-1",
+          "licenses": [
+            "LGPL-2.1-only OR MPL-1.1"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcairo.so.2",
+      "sha256": "9a20e8a440c2feb4f65a9332619624872c238e0d5358cbba2b57d9739009910c",
+      "build_id": "bbcc2f36082efdb43c24e40047ec7e6b5e1b18a6",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcairo.so.2",
+          "package": "cairo",
+          "version": "1.18.6-1",
+          "licenses": [
+            "LGPL-2.1-only OR MPL-1.1"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcanberra-gtk3.so.0",
+      "sha256": "1f43d3cd3cd234df1255f800ef82a3de2ecc2dd0d05ac418e5b04d7d8ca32438",
+      "build_id": "42c158a600726c97b289dd82c66a561878a93454",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcanberra-gtk3.so.0",
+          "package": "libcanberra",
+          "version": "1:0.30+r2+gc0620e4-6",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcanberra.so.0",
+      "sha256": "d6db3fc77f49c276223ae9eed1cdc0a0101a6ac672109128e7f1c5a01042a130",
+      "build_id": "31a6232c7f6d9652498f087afb7b75bb2f94c263",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcanberra.so.0",
+          "package": "libcanberra",
+          "version": "1:0.30+r2+gc0620e4-6",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcloudproviders.so.0",
+      "sha256": "2ac50672ab8faecccb0ebceb41b2dae8f77d980a2d51b28ef9287cddd6830f5a",
+      "build_id": "d2c815e7553938161a6024f274d74c855ecb81c3",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcloudproviders.so.0",
+          "package": "libcloudproviders",
+          "version": "0.4.1-1",
+          "licenses": [
+            "LGPL-3.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcolord.so.2",
+      "sha256": "e7e508fb9e92e1d4712d17de77b03bc93a53d3958687e55f8165c0de71257607",
+      "build_id": "e87b021f6123949deb739b634a1373ef6a21ec4a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcolord.so.2",
+          "package": "libcolord",
+          "version": "1.4.8-2",
+          "licenses": [
+            "GPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcrypto.so.3",
+      "sha256": "7f1e75f08547409060d7d283b1ec2ccaffccb76af5140efae0d16e73ba022a52",
+      "build_id": "1a725f84d7c552e667ab3d384230a9b5e8597acd",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcrypto.so.3",
+          "package": "openssl",
+          "version": "3.6.5-1",
+          "licenses": [
+            "Apache-2.0"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcups.so.2",
+      "sha256": "3226f3d8a1ad57970dd7f9e5c0398490d8877784ce37805c5a69210621a00185",
+      "build_id": "9c67401a7cf586ae7e2828ce1c4fbb3f786b9bfe",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcups.so.2",
+          "package": "libcups",
+          "version": "2:2.4.20-1",
+          "licenses": [
+            "Apache-2.0 WITH LLVM-exception AND BSD-3-Clause AND Zlib AND BSD-2-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libcurl.so.4",
+      "sha256": "b80c4d19b8349426a2a70c80ff1fdd42ff78b3a01681dc4ad0061607e403ad9c",
+      "build_id": "a20000509892b8555440d012d6e5ce9e2a39372f",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libcurl.so.4",
+          "package": "curl",
+          "version": "8.23.0-1",
+          "licenses": [
+            "curl"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libdatrie.so.1",
+      "sha256": "4d1eeae3b3ffeb84af07efe43b0db01212f9921c2f83af5d67849844b5efdcdc",
+      "build_id": "587ef09036ffaeef47421f92e27ffe6034f5b967",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libdatrie.so.1",
+          "package": "libdatrie",
+          "version": "0.2.14-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libdav1d.so.7",
+      "sha256": "935ffedf13fe38f25ae4033c5385cf3fbea3343f9f45e21e497dfe4d00c38e05",
+      "build_id": "405ea8af2b7b93808c5dc7c398cca93d3f4d714b",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libdav1d.so.7",
+          "package": "dav1d",
+          "version": "1.5.4-1",
+          "licenses": [
+            "BSD-2-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libdbus-1.so.3",
+      "sha256": "4da47aa12229479d3863f11abe4f23da3694809fdbf1a2170eaafdec0aff4f48",
+      "build_id": "4e707c34026896bf65661966a12fa7a7c347c164",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libdbus-1.so.3",
+          "package": "dbus",
+          "version": "1.16.2-2",
+          "licenses": [
+            "AFL-2.1 OR GPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libduktape.so.207",
+      "sha256": "44717d5f0b3816b2b6b5b3f2e3d80e3996b76b0e7f69b7f4da7358430ccb5fd8",
+      "build_id": "08a7f7727544ead2b1501939a56fe9ef0f3868c3",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libduktape.so.207",
+          "package": "duktape",
+          "version": "2.7.0-7",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libdw.so.1",
+      "sha256": "cdb7ccbad54789e65d722285886b7a266a8e50562a695867e5b826ce8e86b1eb",
+      "build_id": "28910cc35998373ac2294e6f6e70ef67fdd49936",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libdw.so.1",
+          "package": "libelf",
+          "version": "0.197-1",
+          "licenses": [
+            "GPL-2.0-or-later OR LGPL-3.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libelf.so.1",
+      "sha256": "0a638d4785f181705d4a49a29a24a1b1a294f0052dccecf50ced4517112cc97f",
+      "build_id": "109e9d93d05e231840c57131daa30b9bae3ef2e8",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libelf.so.1",
+          "package": "libelf",
+          "version": "0.197-1",
+          "licenses": [
+            "GPL-2.0-or-later OR LGPL-3.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libenchant-2.so.2",
+      "sha256": "c024b1bf8baf6a60c9dee5685125f4fd2bc0803da97d6a75eb02af606375bc0d",
+      "build_id": "6a207856282bb305e22f9e405bf7cd9545d679b0",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libenchant-2.so.2",
+          "package": "enchant",
+          "version": "2.8.21-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libepoxy.so.0",
+      "sha256": "0a81c49cfb8dd949d1395d665568d044e8a2242f5a9df79e5de2b3d4b6bea89b",
+      "build_id": "9859ca4f01461f7093915ced12cd69105b258d09",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libepoxy.so.0",
+          "package": "libepoxy",
+          "version": "1.5.10-3",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libevdev.so.2",
+      "sha256": "7b5c887efff3dd7cacb028df919a65d7aa27f5cc4a334a9cb35a043ff8bc15ad",
+      "build_id": "39e53577c797ab40b18e5a1cc6b58a5dc703c1ef",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libevdev.so.2",
+          "package": "libevdev",
+          "version": "1.14.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libffi.so.8",
+      "sha256": "a93b3d65f3f95a6c074dbf8400e52e794d1ac85a0d1350a0b2928190bc96e655",
+      "build_id": "fbfb11239e2bcc18263488a77a55c3fc5e3982d5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libffi.so.8",
+          "package": "libffi",
+          "version": "3.8.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgcrypt.so.20",
+      "sha256": "5850f7a855341c84a7c7a2bb904922b2af6b0c0d49184a4b485a7321bd98c53a",
+      "build_id": "06a0d5cfa15c333b18d9d54afc6ace699b12ba51",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgcrypt.so.20",
+          "package": "libgcrypt",
+          "version": "1.12.4-1",
+          "licenses": [
+            "BSD-3-Clause",
+            "BSD-3-Clause OR GPL-2.0-only",
+            "GPL-2.0-or-later",
+            "LGPL-2.0-or-later",
+            "LGPL-2.1-or-later",
+            "X11",
+            "LicenseRef-scancode-public-domain",
+            "LicenseRef-OCB1"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgdk-3.so.0",
+      "sha256": "179ba04681e5dcb363e461e6bb1684af0f1f253a39f6870f1d000e30b5d69804",
+      "build_id": "f3704abaa836cc90db1dbdc0d3ad23bb04897781",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgdk-3.so.0",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgdk_pixbuf-2.0.so",
+      "sha256": "7db0a4801badd9c31a8ddcf1a360fe54ffec6a99b1ffdfebec822f6634203f2f",
+      "build_id": "a175caa52e1fc1ee2ae56d75f6e45a52998c7b63",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgdk_pixbuf-2.0.so",
+          "package": "gdk-pixbuf2",
+          "version": "2.44.8-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgdk_pixbuf-2.0.so.0",
+      "sha256": "7db0a4801badd9c31a8ddcf1a360fe54ffec6a99b1ffdfebec822f6634203f2f",
+      "build_id": "a175caa52e1fc1ee2ae56d75f6e45a52998c7b63",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgdk_pixbuf-2.0.so.0",
+          "package": "gdk-pixbuf2",
+          "version": "2.44.8-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgdk_pixbuf-2.0.so.0.4400.8",
+      "sha256": "7db0a4801badd9c31a8ddcf1a360fe54ffec6a99b1ffdfebec822f6634203f2f",
+      "build_id": "a175caa52e1fc1ee2ae56d75f6e45a52998c7b63",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgdk_pixbuf-2.0.so.0.4400.8",
+          "package": "gdk-pixbuf2",
+          "version": "2.44.8-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgio-2.0.so",
+      "sha256": "45323fc43825ea5190fb285140b473e339057b89b2de566993683cd7a870b08f",
+      "build_id": "81a977be3188ab712a53eaf49bea2436995d816c",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgio-2.0.so",
+          "package": "glib2",
+          "version": "2.90.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgio-2.0.so.0",
+      "sha256": "45323fc43825ea5190fb285140b473e339057b89b2de566993683cd7a870b08f",
+      "build_id": "81a977be3188ab712a53eaf49bea2436995d816c",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgio-2.0.so.0",
+          "package": "glib2",
+          "version": "2.90.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgio-2.0.so.0.9000.1",
+      "sha256": "45323fc43825ea5190fb285140b473e339057b89b2de566993683cd7a870b08f",
+      "build_id": "81a977be3188ab712a53eaf49bea2436995d816c",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgio-2.0.so.0.9000.1",
+          "package": "glib2",
+          "version": "2.90.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libglib-2.0.so.0",
+      "sha256": "d9d90a758cd7937ea1fc6d964b84f42e232b881a551de71b3ed02432acb6d113",
+      "build_id": "31e51c7a8e9e82dfb1b0c9af3611a3ccd675a194",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libglib-2.0.so.0",
+          "package": "glib2",
+          "version": "2.90.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libglycin-2.so.0",
+      "sha256": "e9edbc643de1f6f44d57d15595edaeb88bbbc39b7de7cda3969a00b020e2004d",
+      "build_id": "d0185f0b7bfbe482be9e24f5936ee139b74bbbb3",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libglycin-2.so.0",
+          "package": "glycin",
+          "version": "2.2.3-1",
+          "licenses": [
+            "MPL-2.0 OR LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgmodule-2.0.so.0",
+      "sha256": "59ffe647e56e180fa3bc6100076e55e2d988c037dfe2ce25b82240367e5ab3b2",
+      "build_id": "77479e03db9d9986784b7e647a179c79a2e628f4",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgmodule-2.0.so.0",
+          "package": "glib2",
+          "version": "2.90.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgnutls.so.30",
+      "sha256": "7f3e375be368b886e898a4f0ec0ee194a1179d50a4139b8dea10afff54dfd815",
+      "build_id": "8490ac1f28fc27f3f7b84739cd7d62001abf9c78",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgnutls.so.30",
+          "package": "gnutls",
+          "version": "3.8.13-3",
+          "licenses": [
+            "GPL-3.0-or-later AND LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgobject-2.0.so",
+      "sha256": "2581c689587d1534132f92a90240e3af61e0ab2764bb34e03d0e8eca1647897f",
+      "build_id": "eda2180786222e29e60a92a17d92b7cd5f3aeca7",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgobject-2.0.so",
+          "package": "glib2",
+          "version": "2.90.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgobject-2.0.so.0",
+      "sha256": "2581c689587d1534132f92a90240e3af61e0ab2764bb34e03d0e8eca1647897f",
+      "build_id": "eda2180786222e29e60a92a17d92b7cd5f3aeca7",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgobject-2.0.so.0",
+          "package": "glib2",
+          "version": "2.90.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgobject-2.0.so.0.9000.1",
+      "sha256": "2581c689587d1534132f92a90240e3af61e0ab2764bb34e03d0e8eca1647897f",
+      "build_id": "eda2180786222e29e60a92a17d92b7cd5f3aeca7",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgobject-2.0.so.0.9000.1",
+          "package": "glib2",
+          "version": "2.90.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgraphite2.so.3",
+      "sha256": "526a5914d0bc11d4c0bd1961d5556048c6dcbe9548cb89bd3988b986536c3e3c",
+      "build_id": "95be4e2525576c8ea3c49d620eb875b035d9fd02",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgraphite2.so.3",
+          "package": "graphite",
+          "version": "1:1.3.15-1",
+          "licenses": [
+            "LGPL-2.1-or-later OR MPL-2.0 OR GPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgssapi_krb5.so.2",
+      "sha256": "5a3b7ebfd40a618adee1c636700badbe7f7c1aefbe5e982adbd534d4efc7e08a",
+      "build_id": "a88871bc5ce44c068cd555b10744d6bc4d18f02d",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgssapi_krb5.so.2",
+          "package": "krb5",
+          "version": "1.22.2-1",
+          "licenses": [
+            "custom"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstallocators-1.0.so.0",
+      "sha256": "42db726c5dac16c0fcdf35b1d2c287ae31225cd70e619148e68d98e1274136d5",
+      "build_id": "3717216e7d7f863a8f491722fcb00ca7a56ee1f4",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstallocators-1.0.so.0",
+          "package": "gst-plugins-base-libs",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstapp-1.0.so.0",
+      "sha256": "c55fd85d0d97aad121054e0a0d0f3c2b181d35b21ca7e458cd76792096b3d1b5",
+      "build_id": "dbc10f3046cbb4bc84f930e100c94f7fc793fc7e",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstapp-1.0.so.0",
+          "package": "gst-plugins-base-libs",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstaudio-1.0.so.0",
+      "sha256": "a32697116657ce142a09a0a53d69c30355dcfe28aa0295d07a66a9a6a23634dc",
+      "build_id": "06670b27691a8b536e0ee2ee6115abddba81073b",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstaudio-1.0.so.0",
+          "package": "gst-plugins-base-libs",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstbase-1.0.so.0",
+      "sha256": "623a5793c9a6da1d93812bf2757e5a122d388bf6003537db6f671997a5d21e30",
+      "build_id": "29268b4f15c9d51158bb30f40654a9ae0aac1488",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstbase-1.0.so.0",
+          "package": "gstreamer",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstfft-1.0.so.0",
+      "sha256": "902fdd24ea054099c6b250bf4f6edb15b39b9cc87b10e9744893a50b348cd6ac",
+      "build_id": "8d752acc158ee23714de71695c9220788b13ece8",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstfft-1.0.so.0",
+          "package": "gst-plugins-base-libs",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstgl-1.0.so.0",
+      "sha256": "a5ab90086bedad1329c4475d8abca1825054c015e7847d6176db79edd735682b",
+      "build_id": "db98e66afb94f8609a5aeadaec41d11ed0e9a471",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstgl-1.0.so.0",
+          "package": "gst-plugins-base-libs",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstpbutils-1.0.so.0",
+      "sha256": "ed9adfc16374c35c6775f4541cfe339e89437023dccb2b61ec35b9f1838f7d87",
+      "build_id": "20219d0b8961e1c643a92c838b977c100d9aefab",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstpbutils-1.0.so.0",
+          "package": "gst-plugins-base-libs",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstreamer-1.0.so.0",
+      "sha256": "c7c50f8a62ad6341b4dde5ad15a255793fd0abb236fe9dd54232ad0d4675b723",
+      "build_id": "1e75e54af1a35ff6346ef89416b6f1836e5bf34f",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstreamer-1.0.so.0",
+          "package": "gstreamer",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgsttag-1.0.so.0",
+      "sha256": "aa7252ef4bd831824b6d3eb646e9fad5f4a741da1cff25f6654557551b28a6ea",
+      "build_id": "2db469447078e7132fdd9d399dee07bce57a69ed",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgsttag-1.0.so.0",
+          "package": "gst-plugins-base-libs",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgstvideo-1.0.so.0",
+      "sha256": "afdf49ab2b15299d9f5427c4e836e670035e1f244e73851b3059caa0c08f0502",
+      "build_id": "d4341f79d8fd2123e0a089490638cc019a9023b2",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgstvideo-1.0.so.0",
+          "package": "gst-plugins-base-libs",
+          "version": "1.28.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgtk-3.so.0",
+      "sha256": "09c963b00d658ac67a40a5b616d144ab812a5247c915e714539503abcab49e3d",
+      "build_id": "a5e800bb591f91789e8352e380e88ab0781fb91a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgtk-3.so.0",
+          "package": "gtk3",
+          "version": "1:3.24.52-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgudev-1.0.so.0",
+      "sha256": "ba411b4158cf0569ce2d052e17b48414582cd29d300859b1168ffcc7fb7027d6",
+      "build_id": "7d50d1ca5abd834c0a38220d23cb834387ed8d37",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libgudev-1.0.so.0",
+          "package": "libgudev",
+          "version": "238-4",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libgvfscommon.so",
+      "sha256": "ccd6c747c70727a0e730b906166f7a4652c0298fd1749ce424c3d0809e747cc5",
+      "build_id": "160ff87fb03c8c938c6711045f18172205be09af",
+      "host_matches": [
+        {
+          "file": "/usr/lib/gvfs/libgvfscommon.so",
+          "package": "gvfs",
+          "version": "1.62.0-3",
+          "licenses": [
+            "LGPL-2.0-only"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libharfbuzz-icu.so.0",
+      "sha256": "99bfbdb758b5c039601f2f2383a72fc8c9442e2b25e5de874cf3351d786a347d",
+      "build_id": "135d1a19579780f93a6f0062f2cb3b27502fad98",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libharfbuzz-icu.so.0",
+          "package": "harfbuzz-icu",
+          "version": "14.6.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libhidapi-hidraw.so.0",
+      "sha256": "d482f0eecac29ca815ce6b97fa22f78f0220d0e34dd2bad0314db5565f3332e0",
+      "build_id": "652d2775f5b02a7abfd9fc90bfdf4520cf03fe45",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libhidapi-hidraw.so.0",
+          "package": "hidapi",
+          "version": "0.15.0-1",
+          "licenses": [
+            "GPL3",
+            "BSD",
+            "custom"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libhogweed.so.7",
+      "sha256": "25879699a146c09352c4bc3c67ec5d3b47f4bc6953a1f9da5e2248ec2073d49a",
+      "build_id": "0ef4cd112e389ea751f8d2d14c54f08a4b74062a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libhogweed.so.7",
+          "package": "nettle",
+          "version": "4.0-1",
+          "licenses": [
+            "LGPL-3.0-or-later OR GPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libhwy.so.1",
+      "sha256": "59175d66d3c2015c5a2ae98dd5a76c2457e78e4b1a1a5438cfb6b34987dfbeab",
+      "build_id": "1cc1b8dc7293c011e9a240172624b8beb820d0b1",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libhwy.so.1",
+          "package": "highway",
+          "version": "1.4.0-1",
+          "licenses": [
+            "Apache-2.0 OR BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libhyphen.so.0",
+      "sha256": "8b68cdddbc5d5ab0b352963029a91388517f8b76c2cbbc8d70b481ab08ead2ec",
+      "build_id": "20fd00d1c89d118991b62b43d6cd511fdc40cf75",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libhyphen.so.0",
+          "package": "hyphen",
+          "version": "2.8.9-1",
+          "licenses": [
+            "GPL-2.0-only OR LGPL-2.1-or-later OR MPL-1.1"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libicudata.so.78",
+      "sha256": "97d111f56a689857020e3e278cad1127ab1ff1d3561f55c4d7e62acd56693fa6",
+      "build_id": "c7daad49bbacf859e760bae47498df6a57605088",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libicudata.so.78",
+          "package": "icu",
+          "version": "78.3-1",
+          "licenses": [
+            "LicenseRef-Unicode-3.0",
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "NAIST-2003"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libicui18n.so.78",
+      "sha256": "b4adce689832c38a62feea0542464242b6e24873afa9e112c5b0dde319216cd4",
+      "build_id": "545b2992dda845ae0e4ed23934c85ef1485eab25",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libicui18n.so.78",
+          "package": "icu",
+          "version": "78.3-1",
+          "licenses": [
+            "LicenseRef-Unicode-3.0",
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "NAIST-2003"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libicuuc.so.78",
+      "sha256": "f2b12bfdaecd3a90a7b72dca8e89986b232f02d55e7445260a4b9faac3103a96",
+      "build_id": "1a64bc920e1354d78e053fa4167208a9557b5c94",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libicuuc.so.78",
+          "package": "icu",
+          "version": "78.3-1",
+          "licenses": [
+            "LicenseRef-Unicode-3.0",
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "NAIST-2003"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libidn2.so.0",
+      "sha256": "c75cabb067392a6a56bc27cd0161bd7c58e61fbc2fd8ffd5da7d2d892723ecd2",
+      "build_id": "5a7b525c47a4cff3114b4ea3c2a542f092cf55fd",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libidn2.so.0",
+          "package": "libidn2",
+          "version": "2.3.8-1",
+          "licenses": [
+            "GPL2",
+            "LGPL3"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libjavascriptcoregtk-4.1.so.0",
+      "sha256": "3c3ec84d0e874235f7080379fce8deadb7ed18c51a04a276399e2022328b6039",
+      "build_id": "fa26862a96388babc6b3bac9ebddaa203c400b4d",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libjavascriptcoregtk-4.1.so.0",
+          "package": "webkit2gtk-4.1",
+          "version": "2.54.1-1",
+          "licenses": [
+            "AFL-2.0 OR GPL-2.0-or-later",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-2-Clause-Views",
+            "BSD-3-Clause",
+            "BSD-Source-Code",
+            "BSL-1.0",
+            "bzip2-1.0.6",
+            "GPL-2.0-only",
+            "GPL-3.0-only WITH Autoconf-exception-3.0",
+            "GPL-3.0-or-later WITH Bison-exception-2.2",
+            "ICU",
+            "ISC",
+            "LGPL-2.1-only",
+            "LGPL-2.1-or-later",
+            "MIT",
+            "MPL-1.1",
+            "MPL-2.0",
+            "NCSA",
+            "NCSA OR MIT",
+            "OFL-1.1",
+            "SunPro",
+            "Unicode-TOU"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libjpeg.so.8",
+      "sha256": "fe4057e89f864538bac2455fd0a18f6ffb2867eb5abc3a4b488b0c82daa3dc0c",
+      "build_id": "d6a0cd826b8e0a560f47a97c8ce6a172716467de",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libjpeg.so.8",
+          "package": "libjpeg-turbo",
+          "version": "3.2.0-2",
+          "licenses": [
+            "BSD-3-Clause",
+            "IJG"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libjson-glib-1.0.so.0",
+      "sha256": "3c06beeeae1871fec2a09417805a7f08e42b1c07ea33d035c42dec93abd739cd",
+      "build_id": "f6f3948afaef4b31a95240a8ea7d7a26ebbb21eb",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libjson-glib-1.0.so.0",
+          "package": "json-glib",
+          "version": "1.10.8-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libjxl.so.0.12",
+      "sha256": "2afee962da64a90adcb90fe49f93fffa3bfe19ef01d0fb9a0a0e3a1d7e349144",
+      "build_id": "b56185f0bdc7e5dcd369495ba0f78194720034e7",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libjxl.so.0.12",
+          "package": "libjxl",
+          "version": "0.12.0-1",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libjxl_cms.so.0.12",
+      "sha256": "b91a6019ce215f2ee51bfb20318c6532679a03c3f58448cf38f374404b49dbb3",
+      "build_id": "1365889af0262b7dfcaaa7ef905fb1316faf1681",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libjxl_cms.so.0.12",
+          "package": "libjxl",
+          "version": "0.12.0-1",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libk5crypto.so.3",
+      "sha256": "53756effe91ad14326da78f4eb9d43115ddb4a51eecd4874022580bb9e761e19",
+      "build_id": "edba4f85b609c6b30ee1cecb1c117c5f1a37e14f",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libk5crypto.so.3",
+          "package": "krb5",
+          "version": "1.22.2-1",
+          "licenses": [
+            "custom"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libkeyutils.so.1",
+      "sha256": "6ab96bf2f1f5dfbebbdf5630141e1c534f8c9401857b5fd3a738a93507a9b5a2",
+      "build_id": "06bd51eb014e40a6e25888f2b4f0dcbb13faf15e",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libkeyutils.so.1",
+          "package": "keyutils",
+          "version": "1.6.3-4",
+          "licenses": [
+            "GPL-2.0-or-later",
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libkrb5.so.3",
+      "sha256": "7f6a0ff3509bef76b00abe85f686dc8180996281b67f5194051c181e763bdfa1",
+      "build_id": "83ef448df5b1975f65c31354caed21b217b63322",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libkrb5.so.3",
+          "package": "krb5",
+          "version": "1.22.2-1",
+          "licenses": [
+            "custom"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libkrb5support.so.0",
+      "sha256": "cc50562410b9791cdf25da6338a5d1c42cbf093cba26c71cfa4cd5b4b3511cb5",
+      "build_id": "a51d5b748e7e51f6536f9ab5fd2bf554f077ba4b",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libkrb5support.so.0",
+          "package": "krb5",
+          "version": "1.22.2-1",
+          "licenses": [
+            "custom"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/liblcms2.so.2",
+      "sha256": "1f61dbbe442f087ea8631fd4a811ee2c514fe4fbce2283b108f550f4b23c78b9",
+      "build_id": "ddaf772e83c0f553c3ee606ed7306c67a4bf72de",
+      "host_matches": [
+        {
+          "file": "/usr/lib/liblcms2.so.2",
+          "package": "lcms2",
+          "version": "2.19.1-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libleancrypto.so.1.9",
+      "sha256": "85bb01ac7403aff3f380a6177d08746c6fa3cbc8ec55cfc5a27679486735599c",
+      "build_id": "d46014e7a19d81f4fa630e3edd7bedb8ee58f348",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libleancrypto.so.1.9",
+          "package": "leancrypto",
+          "version": "1.9.1-1",
+          "licenses": [
+            "GPL-2.0-or-later",
+            "LicenseRef-BSDvariant",
+            "LicenseRef-leancrypto"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libltdl.so.7",
+      "sha256": "1702caf84e8945d10456a7889100debcc7b85e422b20a62215f202f1c6b4f184",
+      "build_id": "b4391fb53991be4b56f427e20e3f1ca1bfc5f531",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libltdl.so.7",
+          "package": "libtool",
+          "version": "2.6.2-5",
+          "licenses": [
+            "LGPL-2.0-or-later WITH Libtool-exception"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/liblzma.so.5",
+      "sha256": "be74e9aaddf9f63690824aa7a2081a45a81a02ffa6ffc72731d15ebd6fd89c4c",
+      "build_id": "f97dab108ab20210d94bb08a09ab057ba3aad148",
+      "host_matches": [
+        {
+          "file": "/usr/lib/liblzma.so.5",
+          "package": "xz",
+          "version": "5.8.4-1",
+          "licenses": [
+            "GPL-2.0-or-later AND 0BSD AND LicenseRef-Public-Domain AND LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libmanette-0.2.so.0",
+      "sha256": "31469c470dbecda9617b7c9fdd28ef2134b3ffe1bfc1681c3268dc351e93c896",
+      "build_id": "c49e45ee8853492e2408cb3615db7af76f8e02a6",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libmanette-0.2.so.0",
+          "package": "libmanette",
+          "version": "0.2.13-2",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libmount.so.1",
+      "sha256": "4e2dfac26199a311d1c631f033d39194044f30faba3305651e5ecc04c8dc20f8",
+      "build_id": "a368f1fbd15058ea736dced5fd84beb8bea3859f",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libmount.so.1",
+          "package": "util-linux-libs",
+          "version": "2.42.4-1",
+          "licenses": [
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "BSD-4-Clause-UC",
+            "GPL-2.0-only",
+            "GPL-2.0-or-later",
+            "GPL-3.0-or-later",
+            "ISC",
+            "LGPL-2.1-or-later",
+            "LicenseRef-PublicDomain"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libnettle.so.9",
+      "sha256": "f693f35537b052fdb1ee00f7da02b8f4b558876b923a963094876a869f0281df",
+      "build_id": "d8c68235f8fb0dedd67346a88861906329bd04c9",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libnettle.so.9",
+          "package": "nettle",
+          "version": "4.0-1",
+          "licenses": [
+            "LGPL-3.0-or-later OR GPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libnghttp2.so.14",
+      "sha256": "cac8f7b8c362f42821e2105f84190e13f545eaed193bfda132bdaff80da788dd",
+      "build_id": "9e37b79c57bd42af19f30a872bafc4087a06c6d8",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libnghttp2.so.14",
+          "package": "libnghttp2",
+          "version": "1.70.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libnghttp3.so.9",
+      "sha256": "ce092d54a35659d8eae954e6f5a6d5c3fa90baa4199b69120754a3cf2e3f3aef",
+      "build_id": "a9f6912649d4a4acb089f752dbd948ccc12fad12",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libnghttp3.so.9",
+          "package": "libnghttp3",
+          "version": "1.18.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libngtcp2.so.16",
+      "sha256": "a5bf46643996722ad0b6d7e6e88c42a344d6585420de7c6322da710c88fe47ae",
+      "build_id": "237dd5f4c1f22d9aaa39353be530c5cf03dffbe4",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libngtcp2.so.16",
+          "package": "libngtcp2",
+          "version": "1.25.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libngtcp2_crypto_ossl.so.0",
+      "sha256": "69a30b5b25146b93b0f17d3a047c771d5d19a8089d8657c59f1dee10dccc86a1",
+      "build_id": "d23cc6c075752d833fa5cf5c85f55e03a6c8ac2c",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libngtcp2_crypto_ossl.so.0",
+          "package": "libngtcp2",
+          "version": "1.25.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libogg.so.0",
+      "sha256": "d9bb74a2c84d78e8dc12f74a451f8dbfea9d87dd2bada2747c7fc446845490ca",
+      "build_id": "2e3496760e0a25fcc6ec39b05041da8f3e1df62f",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libogg.so.0",
+          "package": "libogg",
+          "version": "1.3.6-1",
+          "licenses": [
+            "BSD"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/liborc-0.4.so.0",
+      "sha256": "b20f62abd8c64f00175807931eb910806dcc24fae3de1da732ab898e976cee13",
+      "build_id": "1db58a2b6cd1694959861f8b5bf4ac85ad8ff0b1",
+      "host_matches": [
+        {
+          "file": "/usr/lib/liborc-0.4.so.0",
+          "package": "orc",
+          "version": "0.4.44-1",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libp11-kit.so.0",
+      "sha256": "03591a002c769b9fb0d2840e38be62072ce0891904ed5358fb3d7b6d983ed888",
+      "build_id": "2e54a4a3efb3894a1e96ab0db01c2fd640a60c3f",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libp11-kit.so.0",
+          "package": "libp11-kit",
+          "version": "0.26.5-1",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpango-1.0.so",
+      "sha256": "c7341bbe5276d1a3f65050cbb27caebb2e3768b22ee9ea0543bcd0e2ab2ba343",
+      "build_id": "daf0462092b8965739adf024e3683b1651237689",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpango-1.0.so",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpango-1.0.so.0",
+      "sha256": "c7341bbe5276d1a3f65050cbb27caebb2e3768b22ee9ea0543bcd0e2ab2ba343",
+      "build_id": "daf0462092b8965739adf024e3683b1651237689",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpango-1.0.so.0",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpango-1.0.so.0.5800.2",
+      "sha256": "c7341bbe5276d1a3f65050cbb27caebb2e3768b22ee9ea0543bcd0e2ab2ba343",
+      "build_id": "daf0462092b8965739adf024e3683b1651237689",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpango-1.0.so.0.5800.2",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpangocairo-1.0.so",
+      "sha256": "273e64335fb22e14ae40649f854e6dbab7b9a5bb6f830246672f4c4d6c467a2f",
+      "build_id": "6014170092df97befef6beb55c9868f852db0906",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpangocairo-1.0.so",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpangocairo-1.0.so.0",
+      "sha256": "273e64335fb22e14ae40649f854e6dbab7b9a5bb6f830246672f4c4d6c467a2f",
+      "build_id": "6014170092df97befef6beb55c9868f852db0906",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpangocairo-1.0.so.0",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpangocairo-1.0.so.0.5800.2",
+      "sha256": "273e64335fb22e14ae40649f854e6dbab7b9a5bb6f830246672f4c4d6c467a2f",
+      "build_id": "6014170092df97befef6beb55c9868f852db0906",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpangocairo-1.0.so.0.5800.2",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpangoft2-1.0.so",
+      "sha256": "38affa5b07843de1072cf3d8e4826471e0c547145f00a70b6e9f0c2dd7d18207",
+      "build_id": "87392d444159d1499dbac60f402d36cf322b5e0a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpangoft2-1.0.so",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpangoft2-1.0.so.0",
+      "sha256": "38affa5b07843de1072cf3d8e4826471e0c547145f00a70b6e9f0c2dd7d18207",
+      "build_id": "87392d444159d1499dbac60f402d36cf322b5e0a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpangoft2-1.0.so.0",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpangoft2-1.0.so.0.5800.2",
+      "sha256": "38affa5b07843de1072cf3d8e4826471e0c547145f00a70b6e9f0c2dd7d18207",
+      "build_id": "87392d444159d1499dbac60f402d36cf322b5e0a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpangoft2-1.0.so.0.5800.2",
+          "package": "pango",
+          "version": "1:1.58.2-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpcre2-8.so.0",
+      "sha256": "689b06a1993d454d2de06096588fab854a797a79523725a6f6311049d59ad6bd",
+      "build_id": "fd228b830d33935ad1f0fbe08531e70ce28833c4",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpcre2-8.so.0",
+          "package": "pcre2",
+          "version": "10.49-1",
+          "licenses": [
+            "BSD-2-Clause",
+            "BSD-3-Clause WITH PCRE2-exception"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpixman-1.so.0",
+      "sha256": "a8e21f04f272d56920a4345559c7569825aaed12ad139e06b45ae24c4d5125af",
+      "build_id": "1c469672c3baba14482915011471b670150a84be",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpixman-1.so.0",
+          "package": "pixman",
+          "version": "0.46.4-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpng16.so.16",
+      "sha256": "f7e93211dc786d93c116a4ba8fb5950d22be04980e827c455b71223928e0a784",
+      "build_id": "37a66dcd595f32d37e8d0d8ec2b420d82aca2c06",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpng16.so.16",
+          "package": "libpng",
+          "version": "1.6.59-1",
+          "licenses": [
+            "libpng-2.0"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libproxy.so.1",
+      "sha256": "fa7c8f145c813580c8dcfdc823d360ea1391364de3c42af222b5086295234fdb",
+      "build_id": "4b07f732b61d7c4e6f80e917fa1b58a71d1522e7",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libproxy.so.1",
+          "package": "libproxy",
+          "version": "0.5.12-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpsl.so.5",
+      "sha256": "d903beb32e20bd3a0417883cc0cc4cc3dbddf3a7b0005215f745d6aba04a8de7",
+      "build_id": "cb303f41af9935ee81045b1ad21c18def64a2c70",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libpsl.so.5",
+          "package": "libpsl",
+          "version": "0.21.5-2",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libpxbackend-1.0.so",
+      "sha256": "0c51fdf951bcccb0169bed2b1ec7653cb9134b2d91ff30d8ecced8bfbb877467",
+      "build_id": "f02c557c411845ba0c5a74fddab2df753fb888a9",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libproxy/libpxbackend-1.0.so",
+          "package": "libproxy",
+          "version": "0.5.12-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/librav1e.so.0.8",
+      "sha256": "85eb69918b0ecdce6e0cdc07795344a3102c57f473d6c6368b421b2e7763959a",
+      "build_id": "0e696003c569c86e8c769499c3027fa355d1f5bc",
+      "host_matches": [
+        {
+          "file": "/usr/lib/librav1e.so.0.8",
+          "package": "rav1e",
+          "version": "0.8.1-3",
+          "licenses": [
+            "BSD-2-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/librsvg-2.so",
+      "sha256": "684d01d6e7a96f38173af87dd2643fc827096b25a84873ec011103354c687be1",
+      "build_id": "beae85912462797678a3e4b17754178cdee4977c",
+      "host_matches": [
+        {
+          "file": "/usr/lib/librsvg-2.so",
+          "package": "librsvg",
+          "version": "2:2.63.3-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/librsvg-2.so.2",
+      "sha256": "684d01d6e7a96f38173af87dd2643fc827096b25a84873ec011103354c687be1",
+      "build_id": "beae85912462797678a3e4b17754178cdee4977c",
+      "host_matches": [
+        {
+          "file": "/usr/lib/librsvg-2.so.2",
+          "package": "librsvg",
+          "version": "2:2.63.3-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/librsvg-2.so.2.63.3",
+      "sha256": "684d01d6e7a96f38173af87dd2643fc827096b25a84873ec011103354c687be1",
+      "build_id": "beae85912462797678a3e4b17754178cdee4977c",
+      "host_matches": [
+        {
+          "file": "/usr/lib/librsvg-2.so.2.63.3",
+          "package": "librsvg",
+          "version": "2:2.63.3-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libseccomp.so.2",
+      "sha256": "de60a36a5a20777e6546bfe6da495981418f8fa515db4c96354376ec3012e8c4",
+      "build_id": "bddcb6d9e3369fb3423b1af2caed17af6381eee0",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libseccomp.so.2",
+          "package": "libseccomp",
+          "version": "2.6.0-1",
+          "licenses": [
+            "LGPL-2.1-only"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libsecret-1.so.0",
+      "sha256": "c9a1178db801b5193c56bc5ded8113ded0b32d619da748bcd419550399181f1c",
+      "build_id": "16fda98a8698500b1da69d5955c23913da893adc",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libsecret-1.so.0",
+          "package": "libsecret",
+          "version": "0.21.8.2-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libsharpyuv.so.0",
+      "sha256": "d60713a7e4be47160f072ade729aef35f44946e2486fc2fc21a4cb15bab35cd2",
+      "build_id": "40716ed41012319647d8f6c0c75386ef5b8e0fd6",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libsharpyuv.so.0",
+          "package": "libwebp",
+          "version": "1.6.0-2",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libsoup-3.0.so.0",
+      "sha256": "db6cccbee622f3f9aeb28830ae953ba30a87162f681c1b28752dfcb7a79e28ac",
+      "build_id": "d12623ac178274dce17a7f51d873b63b8dfa890d",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libsoup-3.0.so.0",
+          "package": "libsoup3",
+          "version": "3.8.0-1",
+          "licenses": [
+            "LGPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libsqlite3.so.0",
+      "sha256": "45263aba80bf636ceaea82e06931237043f760b9761fdeb3ddc874a091f2ee7b",
+      "build_id": "963aefcc31bf80f58d5a48430c01f03364cc7362",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libsqlite3.so.0",
+          "package": "sqlite",
+          "version": "3.54.0-1",
+          "licenses": [
+            "LicenseRef-Sqlite"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libssh2.so.1",
+      "sha256": "2a68cf486c3794f7107bfedea4ddee99e1a049a874fcb4834f62f48f380c4650",
+      "build_id": "b2df5d151f73948b91dbb5e3c3fca1681b1f671e",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libssh2.so.1",
+          "package": "libssh2",
+          "version": "1.11.1-7",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libssl.so.3",
+      "sha256": "02ed164c3f0411e2d9a35b301e4acbc3a54b2903ffa985deada4bb3d8981cddd",
+      "build_id": "2638e65cb633edcd9d87cf434560c4173efdfc73",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libssl.so.3",
+          "package": "openssl",
+          "version": "3.6.5-1",
+          "licenses": [
+            "Apache-2.0"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libsystemd.so.0",
+      "sha256": "3ccb586435a5f78e0784e598004d5714088438bfaf51f1d1bb93b0ff14e7a3dd",
+      "build_id": "6fcb078dcb7484b13fa7f6ea52772fa821602e3d",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libsystemd.so.0",
+          "package": "systemd-libs",
+          "version": "262.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later",
+            "CC0-1.0",
+            "GPL-2.0-or-later WITH Linux-syscall-note"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libtasn1.so.6",
+      "sha256": "19de5e8b4caf4f212f8c93f06efd7e3c5b61b2345f430176b6fb75aec73897ea",
+      "build_id": "9da845f0ddb5d3a80ec48306ed2c0646b6eb1e86",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libtasn1.so.6",
+          "package": "libtasn1",
+          "version": "4.21.0-1",
+          "licenses": [
+            "GPL-3.0-or-later",
+            "LGPL-2.1-or-later",
+            "GFDL-1.3-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libtdb.so.1",
+      "sha256": "87d8aeaaaef2b538f30703066093b4f754847e53c705624fcea30a4a83ce1a0c",
+      "build_id": "dd1182120ff9ee7e1442572d213fe54e1b5da9ca",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libtdb.so.1",
+          "package": "tdb",
+          "version": "1.4.15-2",
+          "licenses": [
+            "GPL-3.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libthai.so.0",
+      "sha256": "765f25c461c3d9fd71f9a0a64ebc9f723675a7c66ebd1867dede86704aaa6f71",
+      "build_id": "c4cf87aba388687f8eb4eea0364ec235932d503d",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libthai.so.0",
+          "package": "libthai",
+          "version": "0.1.30-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libtinysparql-3.0.so.0",
+      "sha256": "0317b378a390319779d20394a40a7520dabde0169b7378f71560f2cb02a060a8",
+      "build_id": "07871bdb09c9fb6f1d2c1945b7e40bc711a12006",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libtinysparql-3.0.so.0",
+          "package": "tinysparql",
+          "version": "3.12.0-1",
+          "licenses": [
+            "GPL-2.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libtss2-esys.so.0",
+      "sha256": "b775eb2e9661b4ccb36762cc5be4a3201d81862b75b00b3b5996eede5248453f",
+      "build_id": "8b2d4b8f01e1abd7aee12cfbb84d0dc6d3e525da",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libtss2-esys.so.0",
+          "package": "tpm2-tss",
+          "version": "4.2.0-2",
+          "licenses": [
+            "BSD-2-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libtss2-mu.so.0",
+      "sha256": "1e1b105d3e4a7846d64c2c18629e525bd42a3c0dbed46296da6f7c8654a612e7",
+      "build_id": "912a770626ef9b905f86671abb8a24b680124c9c",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libtss2-mu.so.0",
+          "package": "tpm2-tss",
+          "version": "4.2.0-2",
+          "licenses": [
+            "BSD-2-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libtss2-rc.so.0",
+      "sha256": "8ddcaf9074949d923f91a581c6264152c03813eec3b3855c12e54fd8f8e0d9aa",
+      "build_id": "f3323ed3ce94f28a57626c425b8f03b9bf388ada",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libtss2-rc.so.0",
+          "package": "tpm2-tss",
+          "version": "4.2.0-2",
+          "licenses": [
+            "BSD-2-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libtss2-sys.so.1",
+      "sha256": "0e2d4d8e21c6c4bae1be485d2a8dfff2b5e37df1d8e7c334a0fc063db207971d",
+      "build_id": "8d7c6d4f4e643462584533b1ff366d2c93d1de9a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libtss2-sys.so.1",
+          "package": "tpm2-tss",
+          "version": "4.2.0-2",
+          "licenses": [
+            "BSD-2-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libtss2-tctildr.so.0",
+      "sha256": "5702f05eab39447cc797f53c0ce95b9bc5b288b4555782598ec1b4760d022bf1",
+      "build_id": "55133068f11bbb2dc20f07ee62f0586bd2d0774a",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libtss2-tctildr.so.0",
+          "package": "tpm2-tss",
+          "version": "4.2.0-2",
+          "licenses": [
+            "BSD-2-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libudev.so.1",
+      "sha256": "be3ccabf97c873cf3653f690f936d16f3dacb2ade24550f19db1b661e6eb5805",
+      "build_id": "bb6f0d8a464e3db3cfee57d4eef94e0749d41fa5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libudev.so.1",
+          "package": "systemd-libs",
+          "version": "262.1-1",
+          "licenses": [
+            "LGPL-2.1-or-later",
+            "CC0-1.0",
+            "GPL-2.0-or-later WITH Linux-syscall-note"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libunistring.so.5",
+      "sha256": "9be222982d717cd29b2ce262b4f7410bd2601725563bb2df4b3517f5fab2d199",
+      "build_id": "2d421d79675dfd3e86ab54b8df12787551f1771b",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libunistring.so.5",
+          "package": "libunistring",
+          "version": "1.4.2-1",
+          "licenses": [
+            "GPL-2.0-or-later",
+            "LGPL-3.0-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libunwind.so.8",
+      "sha256": "85bda3ff9fc5381b8c48039c249ae56fa13f80947bbebade1cf4120549d4fe45",
+      "build_id": "64042c57a5ab779d4c43302c029c985e35822f39",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libunwind.so.8",
+          "package": "libunwind",
+          "version": "1.8.3-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libvorbis.so.0",
+      "sha256": "7ebe15ddb6c4780632a1a2c1e4846d28121ea0d59d4a27f0a7ec96cd06f8c8ac",
+      "build_id": "bd3830b63d97cc067522796ff0d5e19a4ca5b690",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libvorbis.so.0",
+          "package": "libvorbis",
+          "version": "1.3.7-4",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libvorbisfile.so.3",
+      "sha256": "633b1f3b201f125138aee46bf87adf1ba4c4f45f11d820abb909328b2c404577",
+      "build_id": "076657371636d3757cc96a9cd48a0bee57e7c1ce",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libvorbisfile.so.3",
+          "package": "libvorbis",
+          "version": "1.3.7-4",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwayland-cursor.so.0",
+      "sha256": "51745c9c9518310d2eae278fc7aee6405699f6152acd5db7e0bbbb415b12147d",
+      "build_id": "eef3e6588f9602ee0c3de0501e1eda2d7ea442e0",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwayland-cursor.so.0",
+          "package": "wayland",
+          "version": "1.26.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwayland-egl.so.1",
+      "sha256": "617dd1f1423d905be3bd6cf7f9c263a7dab3dc7ec221bbb690d09fe6eaec7c78",
+      "build_id": "d155e128d8c2af536a76206288e0227d03c6bff6",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwayland-egl.so.1",
+          "package": "wayland",
+          "version": "1.26.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwayland-server.so.0",
+      "sha256": "3ea73ace435452019edcf8ab9f9473b003e6b5b9c9790d07facfb2b7d2764c51",
+      "build_id": "0844735a67b53b10f35139455b7bed3e5887ddc8",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwayland-server.so.0",
+          "package": "wayland",
+          "version": "1.26.0-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwebkit2gtk-4.1.so.0",
+      "sha256": "d0ad722ee05ca78bfbc5dae4331c9d9891432d497b0a47679306b9e5cedb9a4d",
+      "build_id": "edba0f0fa640969c2b0152af5cd0639025df170e",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwebkit2gtk-4.1.so.0",
+          "package": "webkit2gtk-4.1",
+          "version": "2.54.1-1",
+          "licenses": [
+            "AFL-2.0 OR GPL-2.0-or-later",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-2-Clause-Views",
+            "BSD-3-Clause",
+            "BSD-Source-Code",
+            "BSL-1.0",
+            "bzip2-1.0.6",
+            "GPL-2.0-only",
+            "GPL-3.0-only WITH Autoconf-exception-3.0",
+            "GPL-3.0-or-later WITH Bison-exception-2.2",
+            "ICU",
+            "ISC",
+            "LGPL-2.1-only",
+            "LGPL-2.1-or-later",
+            "MIT",
+            "MPL-1.1",
+            "MPL-2.0",
+            "NCSA",
+            "NCSA OR MIT",
+            "OFL-1.1",
+            "SunPro",
+            "Unicode-TOU"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwebp.so.7",
+      "sha256": "0a4dd33a494674657a2340a3c6da7a387561182a3e64e1bc17953c5417c8e30e",
+      "build_id": "00a52b4eaf5686242ab25ea74c80bc5068dbd2d5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwebp.so.7",
+          "package": "libwebp",
+          "version": "1.6.0-2",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwebpdemux.so.2",
+      "sha256": "dd508a57a0d13e1a53401625445e09a7542cdf0dbd39bf28a52d0f0f090de265",
+      "build_id": "aadbc0fb39af8f828567326ca71b6548acccf7d5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwebpdemux.so.2",
+          "package": "libwebp",
+          "version": "1.6.0-2",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwebpmux.so.3",
+      "sha256": "7e9b4d9ecb100c2796d4f69ec505b6bade5da02547291b6d85bd178071db5e88",
+      "build_id": "a46ce74a8f380921af38d348fa0df9239992684f",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwebpmux.so.3",
+          "package": "libwebp",
+          "version": "1.6.0-2",
+          "licenses": [
+            "BSD-3-Clause"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwmf-0.2.so.7",
+      "sha256": "2af5d306c5891fef75413ed2636a34f1cefc52da849c4b89ff7d520d7c6043c9",
+      "build_id": "626d7f6b0fa15561bfcb6c12eedf2f69a1eed393",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwmf-0.2.so.7",
+          "package": "libwmf",
+          "version": "0.2.17-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libwmflite-0.2.so.7",
+      "sha256": "6a147d129aef5f0ab692a0fb0eb0875ed3ec2b47c0c0de4eabfb82de32448b18",
+      "build_id": "47006b25f039b600bbcc70608824dab02a1611fe",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libwmflite-0.2.so.7",
+          "package": "libwmf",
+          "version": "0.2.17-1",
+          "licenses": [
+            "LGPL-2.1-or-later"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libxcb-render.so.0",
+      "sha256": "45726e775a3bcec34aa96baa5c5a44d40f7340244b8e2f306fae54f4277c238c",
+      "build_id": "29958a8f75f078cce5cdd95a349a107504fc4287",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libxcb-render.so.0",
+          "package": "libxcb",
+          "version": "1.17.0-1",
+          "licenses": [
+            "X11"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libxcb-shm.so.0",
+      "sha256": "701b4d9dd7440f38a352ca848882711dde0668a84c0b1c89c286244cd3f4bc3b",
+      "build_id": "784f87d4dbda457717f2c232b2760c44281a16df",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libxcb-shm.so.0",
+          "package": "libxcb",
+          "version": "1.17.0-1",
+          "licenses": [
+            "X11"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libxkbcommon.so.0",
+      "sha256": "a4d5292ce1c96cb2a445c9cf20f89797762c5bcc88e73befd2019227927af14b",
+      "build_id": "c7abe95334e14825c2eaaa9297deb2ca254f72f4",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libxkbcommon.so.0",
+          "package": "libxkbcommon",
+          "version": "1.13.2-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libxml2.so.16",
+      "sha256": "58322b8c1377d1366eeb2a1f1b14951748a555c6aaacc4cccf0d7e7769a1571d",
+      "build_id": "8cbd43abb7dab037656770fd2586dde110ba9668",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libxml2.so.16",
+          "package": "libxml2",
+          "version": "2.15.4-1",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libxslt.so.1",
+      "sha256": "b8aefb4c2af84fcf593cba1d320f00958b903394deb52ee8640f5d83207d1389",
+      "build_id": "6f3854bfddd27321f71b8e0be0bef6c689498ad8",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libxslt.so.1",
+          "package": "libxslt",
+          "version": "1.1.45-2",
+          "licenses": [
+            "MIT"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libyuv.so",
+      "sha256": "3ffe63960101f773dee96019a3a8fb544a3423915818c7126880ea2600fa1d89",
+      "build_id": "3ebd06999aa68d1702eec38756be55773d6e0e75",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libyuv.so",
+          "package": "libyuv",
+          "version": "r2921+644251f25-1",
+          "licenses": [
+            "custom"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/libzstd.so.1",
+      "sha256": "64b256f187291706bf5071ac76ede10f4d3e63cf40d493a918cf8a840793c43f",
+      "build_id": "d6bc4200ae69187eb2525caebeaaf25421d7e8b4",
+      "host_matches": [
+        {
+          "file": "/usr/lib/libzstd.so.1",
+          "package": "zstd",
+          "version": "1.5.7-3",
+          "licenses": [
+            "BSD-3-Clause",
+            "GPL-2.0-only"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/webkit2gtk-4.1/WebKitNetworkProcess",
+      "sha256": "eb29c8d0a6476ed96bd943d3b80a70efd9627baf8d85893dd9002f7e4b9d9cc9",
+      "build_id": "b80d326748b8b4eff1f19eb7d31715fdd6db6320",
+      "host_matches": [
+        {
+          "file": "/usr/lib/webkit2gtk-4.1/WebKitNetworkProcess",
+          "package": "webkit2gtk-4.1",
+          "version": "2.54.1-1",
+          "licenses": [
+            "AFL-2.0 OR GPL-2.0-or-later",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-2-Clause-Views",
+            "BSD-3-Clause",
+            "BSD-Source-Code",
+            "BSL-1.0",
+            "bzip2-1.0.6",
+            "GPL-2.0-only",
+            "GPL-3.0-only WITH Autoconf-exception-3.0",
+            "GPL-3.0-or-later WITH Bison-exception-2.2",
+            "ICU",
+            "ISC",
+            "LGPL-2.1-only",
+            "LGPL-2.1-or-later",
+            "MIT",
+            "MPL-1.1",
+            "MPL-2.0",
+            "NCSA",
+            "NCSA OR MIT",
+            "OFL-1.1",
+            "SunPro",
+            "Unicode-TOU"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/webkit2gtk-4.1/WebKitWebProcess",
+      "sha256": "431b31014e757ba9df2d9d1d9b34bae31ff7531a8ad14829e49d1d3dff64600e",
+      "build_id": "466e57d227a30f03f1bceb00463c81c03476ea9b",
+      "host_matches": [
+        {
+          "file": "/usr/lib/webkit2gtk-4.1/WebKitWebProcess",
+          "package": "webkit2gtk-4.1",
+          "version": "2.54.1-1",
+          "licenses": [
+            "AFL-2.0 OR GPL-2.0-or-later",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-2-Clause-Views",
+            "BSD-3-Clause",
+            "BSD-Source-Code",
+            "BSL-1.0",
+            "bzip2-1.0.6",
+            "GPL-2.0-only",
+            "GPL-3.0-only WITH Autoconf-exception-3.0",
+            "GPL-3.0-or-later WITH Bison-exception-2.2",
+            "ICU",
+            "ISC",
+            "LGPL-2.1-only",
+            "LGPL-2.1-or-later",
+            "MIT",
+            "MPL-1.1",
+            "MPL-2.0",
+            "NCSA",
+            "NCSA OR MIT",
+            "OFL-1.1",
+            "SunPro",
+            "Unicode-TOU"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib/webkit2gtk-4.1/injected-bundle/libwebkit2gtkinjectedbundle.so",
+      "sha256": "9d9eb95157059d31aa95f5f50c97116f08c38f813223dd43124079326a9ad334",
+      "build_id": "80111b6f3634352c1cdc3d23ac95d13d9dcb71b5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/webkit2gtk-4.1/injected-bundle/libwebkit2gtkinjectedbundle.so",
+          "package": "webkit2gtk-4.1",
+          "version": "2.54.1-1",
+          "licenses": [
+            "AFL-2.0 OR GPL-2.0-or-later",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-2-Clause-Views",
+            "BSD-3-Clause",
+            "BSD-Source-Code",
+            "BSL-1.0",
+            "bzip2-1.0.6",
+            "GPL-2.0-only",
+            "GPL-3.0-only WITH Autoconf-exception-3.0",
+            "GPL-3.0-or-later WITH Bison-exception-2.2",
+            "ICU",
+            "ISC",
+            "LGPL-2.1-only",
+            "LGPL-2.1-or-later",
+            "MIT",
+            "MPL-1.1",
+            "MPL-2.0",
+            "NCSA",
+            "NCSA OR MIT",
+            "OFL-1.1",
+            "SunPro",
+            "Unicode-TOU"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib64/webkit2gtk-4.1/WebKitNetworkProcess",
+      "sha256": "ac76253201fbee9891aa8adeb8cce7ac53f11bf1c466f5fe350d41eb3cbfc1f9",
+      "build_id": "b80d326748b8b4eff1f19eb7d31715fdd6db6320",
+      "host_matches": [
+        {
+          "file": "/usr/lib/webkit2gtk-4.1/WebKitNetworkProcess",
+          "package": "webkit2gtk-4.1",
+          "version": "2.54.1-1",
+          "licenses": [
+            "AFL-2.0 OR GPL-2.0-or-later",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-2-Clause-Views",
+            "BSD-3-Clause",
+            "BSD-Source-Code",
+            "BSL-1.0",
+            "bzip2-1.0.6",
+            "GPL-2.0-only",
+            "GPL-3.0-only WITH Autoconf-exception-3.0",
+            "GPL-3.0-or-later WITH Bison-exception-2.2",
+            "ICU",
+            "ISC",
+            "LGPL-2.1-only",
+            "LGPL-2.1-or-later",
+            "MIT",
+            "MPL-1.1",
+            "MPL-2.0",
+            "NCSA",
+            "NCSA OR MIT",
+            "OFL-1.1",
+            "SunPro",
+            "Unicode-TOU"
+          ],
+          "match": "sha256"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib64/webkit2gtk-4.1/WebKitWebProcess",
+      "sha256": "afe6c0f50e08a762747c65e4b7fc04551960338af72c67649f287b3c4808f2e5",
+      "build_id": "466e57d227a30f03f1bceb00463c81c03476ea9b",
+      "host_matches": [
+        {
+          "file": "/usr/lib/webkit2gtk-4.1/WebKitWebProcess",
+          "package": "webkit2gtk-4.1",
+          "version": "2.54.1-1",
+          "licenses": [
+            "AFL-2.0 OR GPL-2.0-or-later",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-2-Clause-Views",
+            "BSD-3-Clause",
+            "BSD-Source-Code",
+            "BSL-1.0",
+            "bzip2-1.0.6",
+            "GPL-2.0-only",
+            "GPL-3.0-only WITH Autoconf-exception-3.0",
+            "GPL-3.0-or-later WITH Bison-exception-2.2",
+            "ICU",
+            "ISC",
+            "LGPL-2.1-only",
+            "LGPL-2.1-or-later",
+            "MIT",
+            "MPL-1.1",
+            "MPL-2.0",
+            "NCSA",
+            "NCSA OR MIT",
+            "OFL-1.1",
+            "SunPro",
+            "Unicode-TOU"
+          ],
+          "match": "sha256"
+        }
+      ]
+    },
+    {
+      "path": "usr/lib64/webkit2gtk-4.1/injected-bundle/libwebkit2gtkinjectedbundle.so",
+      "sha256": "dda3f0925107da7c3a322816b286ee3592c160a131a156550099ea3f00be3e9e",
+      "build_id": "80111b6f3634352c1cdc3d23ac95d13d9dcb71b5",
+      "host_matches": [
+        {
+          "file": "/usr/lib/webkit2gtk-4.1/injected-bundle/libwebkit2gtkinjectedbundle.so",
+          "package": "webkit2gtk-4.1",
+          "version": "2.54.1-1",
+          "licenses": [
+            "AFL-2.0 OR GPL-2.0-or-later",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-2-Clause-Views",
+            "BSD-3-Clause",
+            "BSD-Source-Code",
+            "BSL-1.0",
+            "bzip2-1.0.6",
+            "GPL-2.0-only",
+            "GPL-3.0-only WITH Autoconf-exception-3.0",
+            "GPL-3.0-or-later WITH Bison-exception-2.2",
+            "ICU",
+            "ISC",
+            "LGPL-2.1-only",
+            "LGPL-2.1-or-later",
+            "MIT",
+            "MPL-1.1",
+            "MPL-2.0",
+            "NCSA",
+            "NCSA OR MIT",
+            "OFL-1.1",
+            "SunPro",
+            "Unicode-TOU"
+          ],
+          "match": "elf_build_id"
+        }
+      ]
+    }
+  ]
+}

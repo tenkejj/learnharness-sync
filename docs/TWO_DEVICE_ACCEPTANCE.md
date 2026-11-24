@@ -1,39 +1,68 @@
-# Desktop + laptop acceptance for the redesigned candidate
+# Physical two-computer managed-sync acceptance
 
-The owner reported native pairing and synthetic transfer between two physical
-Linux computers before this redesign. This session verifies the new candidate
-with local native peers and the packaged app; its physical two-computer acceptance
-is still pending. Never select or alter a real LearnHarness data directory.
+**Status: pending.** Do not mark this gate complete from loopback peers or from
+the packaged acceptance run on one host. Record results from both physical
+Linux computers and use only new disposable managed LearnHarness profiles.
 
-1. Copy the same candidate AppImage to both computers; record its SHA-256. Each
-   generates its own identity. Do not copy profiles or change any existing service.
-2. Launch normally. Home should immediately explain the connection state. Names
-   can be changed through Settings (local) or Devices → Manage (remote).
-3. Click Add Device on both. Confirm nearby discovery; record any invitation
-   fallback separately. Pair on one side, compare all eight groups, reject once
-   and verify that no trust is granted. Repeat and approve on both screens.
-4. Confirm automatic return to Home and the correct two named computers. Click
-   Run sync test once. Verify it reports actual adoption on the receiver, not just
-   a connection. No setup or manual note creation should be necessary.
-5. Run the test from the other computer. Confirm a verified result and retained
-   backups under History when previous test data is replaced.
-6. Close the laptop application. Desktop must say offline without extra clicks.
-   Reopen laptop: identities and trust remain; reconnection is automatic. Home
-   should recover its state from real receipts without manual refresh.
-7. Optional advanced synthetic test: enable Developer Mode in Settings → Advanced.
-   Close both apps, open only desktop, save an invented note, close it; open only
-   laptop, save a different invented note; then reopen desktop. Each must preserve
-   its own branch and show Two versions need attention. Review both notes in
-   History. No automatic branch selection or merge should occur.
-8. Restart both and verify preserved conflicts, notes and backups. For an optional
-   synthetic backup restore, expand a backup in History, choose Restore and enter
-   the exact confirmation phrase. A new revision and prior-state backup must remain.
-9. Remove each relationship through Devices → Manage → Remove Device. Confirm
-   sharing stops and retained histories remain available.
-10. Confirm production operations stay blocked and the app never needed access to
-    LearnHarness, credentials, a system service, Python or an external sync engine.
+## Before starting
 
-Record OS/kernel, GPU/session type, network type, package checksum, each outcome and
-recovery messages. Use screenshots of the isolated app only; do not include private
-profiles, invitation strings, real sessions or unrelated windows. Do not clear a
-release gate without real evidence. Installer qualification is a separate gate.
+- Install the same candidate AppImage on both x86_64 Linux computers and verify
+  the supplied SHA-256. Record the checksum and each computer’s OS, kernel,
+  display type and network.
+- Install the pinned LearnHarness 0.6.1 AppImage at
+  `~/Applications/LearnHarness-0.6.1-x86_64.AppImage` on both computers. The
+  managed launcher executes a verified private copy in its isolated profile;
+  it does not open the ordinary LearnHarness profile.
+- Confirm each host has Btrfs, unprivileged user namespaces, subordinate
+  UID/GID mappings, `newuidmap`/`newgidmap`, bubblewrap, util-linux, btrfs-progs
+  and the required display support. Do not add system services or alter
+  existing profiles to satisfy a failed prerequisite.
+- Keep existing LearnHarness data, LearnHarness Sync device identities and
+  backups intact. Do not copy `identity.json`, trust files or a profile between
+  computers. Do not enter a personal provider credential into a test profile.
+
+## Run the real A → B → A test
+
+1. Launch LearnHarness Sync on both computers. Verify each shows the same
+   candidate version and its own device name.
+2. In Settings, open **Managed LearnHarness** on both computers. Confirm the
+   session is separate from the normal LearnHarness profile. Use only newly
+   created disposable content. If the offline managed app cannot create a
+   completed conversation, stop here and report that blocker; do not migrate or
+   copy a normal profile to make the test proceed.
+3. On A, create a conversation with multiple user and assistant messages, a
+   Unicode phrase, and supported knowledge-graph propositions and chains.
+   Close LearnHarness cleanly. Check the managed snapshot and note its file and
+   byte counts.
+4. Pair A and B using **Add Device**. Compare every verification-string group
+   in person and approve on both computers.
+5. On A, explicitly authorize sending the managed conversation to B. Confirm
+   that B reports a verified staged copy. The receipt must not claim the data
+   was applied.
+6. On B, inspect the revision and explicitly authorize **Apply verified
+   revision**. Wait for the backup confirmation. Reopen LearnHarness from the
+   managed session, verify the conversation, messages and graph, then close it
+   cleanly. LearnHarness Sync must report application readback verified.
+7. Create a new message and graph update on B. Close LearnHarness cleanly,
+   explicitly authorize the B → A transfer, and apply it on A with the same
+   backup and readback checks. Verify the original and new content together.
+8. While LearnHarness is open on either side, attempt **Check managed
+   snapshot**. It must refuse and identify that the writer is active. Close the
+   app cleanly and retry; capture should then succeed.
+9. Restart both LearnHarness Sync applications. Confirm device trust, histories
+   and backups remain present. Do not remove existing device relationships or
+   restore unrelated profiles during this test.
+
+## Record and report
+
+For each direction, record PASS/FAIL for export consent, verified transfer,
+quarantine, explicit Apply, independent backup, real application readback,
+conversation/message IDs, graph propositions/chains/provenance, writer refusal,
+and restart persistence. Record any error text and recovery action. Keep
+screenshots confined to the isolated apps; redact pairing strings. Do not
+include transcripts, credentials, identity keys or normal-profile data in the
+report.
+
+This procedure does not test full-volume exhaustion or power loss. Those remain
+separate release qualifications and must only use a dedicated disposable test
+volume and expendable hardware.

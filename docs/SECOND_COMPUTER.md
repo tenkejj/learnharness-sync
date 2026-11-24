@@ -6,24 +6,45 @@ identities and trust pins are kept when you update the application.
 
 ## Portable AppImage
 
-The current private, ready-to-copy folder on the build machine is `release/learnharness-sync-experimental/`. It contains the AppImage, DEB, RPM, SHA256SUMS and the source commit record. Copy this folder intact to Downloads on the second computer. Run `sha256sum -c SHA256SUMS` from inside the copied folder.
+The ordinary, no-acceptance-feature candidate is
+`target/release/bundle/appimage/LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage`
+in the repository checkout. Its SHA-256 is
+`933714a37e5829683a47b9a5d9929014da5c550145d0adc219cff62137cb5775`.
+This is a private physical-test candidate, not a published release. Copy only
+the AppImage to Downloads on both computers using USB or another trusted
+channel. Do not copy application profiles, native stores or backups.
 
 Copy the AppImage to a folder you control on each computer. From that folder:
 
 ```sh
 chmod +x LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage
+printf '%s  %s\n' '933714a37e5829683a47b9a5d9929014da5c550145d0adc219cff62137cb5775' 'LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage' | sha256sum -c -
 ./LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage
 ```
 
 No account, Python runtime, external sync service or new background service is
-needed. This x86_64 candidate was built and smoke-tested on the development Linux
-host. Other distributions, GPU drivers and architectures are not certified.
+needed. This x86_64 candidate was built and tested on the development Linux
+host. It requires glibc 2.39 or newer. GTK/WebKit libraries are bundled; FUSE 2
+is optional if you use `--appimage-extract-and-run`. Other distributions, GPU
+drivers and architectures are not certified.
+
+For managed LearnHarness synchronization, the host must also provide a Btrfs
+filesystem, unprivileged user namespaces with existing subordinate UID/GID
+allocations, `newuidmap`/`newgidmap`, bubblewrap, util-linux, btrfs-progs, and
+the supported display support (`xauth` plus rootful Xwayland on Wayland, or
+Xephyr on X11). Install the pinned LearnHarness 0.6.1 AppImage at
+`~/Applications/LearnHarness-0.6.1-x86_64.AppImage`; its expected size and SHA
+are recorded in [MANAGED_LINUX.md](MANAGED_LINUX.md). The LearnHarness Sync
+managed launcher executes a verified private copy and uses a separate profile.
 
 Verify the copied files with `sha256sum -c SHA256SUMS` if you copy the whole folder.
 If a host cannot mount AppImages through FUSE, use the AppImage runtime’s extraction
 mode and run `squashfs-root/AppRun` from the extracted bundle. Ubuntu DEB and Fedora RPM verification is recorded in [the qualification report](LEARNHARNESS_061.md).
 
-## Pair and test
+## Optional synthetic LAN smoke
+
+This checks pairing and the native test engine only; it is not real LearnHarness
+data acceptance.
 
 1. Put both computers on the same Wi-Fi or LAN and open LearnHarness Sync on each.
 2. Click **Add Device** on both. On one, click **Pair** beside the other computer.
@@ -34,21 +55,18 @@ mode and run `squashfs-root/AppRun` from the extracted bundle. Ubuntu DEB and Fe
    verification and adoption of the expected test revision. A connection alone
    does not count as success.
 
-There is no setup page or manual test-note preparation. Keep both apps open.
-Closing an app stops its engine. If discovery is unavailable, choose **Can’t find
-your computer?** inside Add Device to use the invitation fallback. Mutual approval
-is still mandatory. Invitations and diagnostics are unnecessary on the happy path.
+Keep both apps open during transfer. If discovery is unavailable, choose **Can’t
+find your computer?** inside Add Device to use the invitation fallback. Mutual
+approval is still mandatory.
 
 Do **not** copy a native profile, `identity.json`, or `devices.json` to the other
 computer: each machine needs its own independent identity. Copy only the app or
 source archive. No LearnHarness data directory is needed or accepted.
 
-The managed LearnHarness 0.6.1 workflow supports explicitly consented transfer
-between isolated managed profiles, with quarantine, independent backup, Apply
-and real application readback. The current candidate has been exercised with
-two packaged peers on one host; acceptance on two physical computers is still
-required before a binary beta is published. The ordinary LearnHarness profile
-is not opened or modified.
+For physical real-data acceptance, follow [TWO_DEVICE_ACCEPTANCE.md](TWO_DEVICE_ACCEPTANCE.md).
+Use new managed profiles only. The ordinary LearnHarness profile is not opened
+or modified. Do not mark physical acceptance complete until both computers have
+reopened LearnHarness and verified A → B → A content and graph readback.
 
 ## Build from source
 

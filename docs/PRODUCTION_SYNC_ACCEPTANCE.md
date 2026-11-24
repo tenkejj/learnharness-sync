@@ -74,3 +74,20 @@ cold power loss, every Linux distribution, or redistribution of bundled
 third-party libraries. The host refused deletion of generated Btrfs test
 subvolumes with `EPERM`; those exact disposable test vaults remain for
 administrator cleanup.
+
+## Storage-failure investigation
+
+The transaction suite injects `StorageFull` after the independent backup has
+been flushed, then verifies that the prior generation remains active and a
+retry succeeds. This is a deterministic transaction-boundary injection, not a
+full-volume exercise. The development host’s home filesystem is Btrfs with
+approximately 102 GiB free, so filling it would risk unrelated user data. A
+bounded 384 MiB scratch Btrfs image was formatted as a regular file; mounting
+that image inside an unprivileged mount namespace was denied by the kernel
+(`EPERM`). The generated image and mountpoint were removed. No personal disk
+was filled or modified.
+
+Cold power-loss testing was not attempted. This session has no disposable VM
+with a dedicated test disk and no QEMU executable; killing a process does not
+simulate a lost storage cache or power failure. Qualifying that case requires
+an expendable VM or hardware test target with a dedicated disposable volume.
