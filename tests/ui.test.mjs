@@ -67,14 +67,15 @@ async function start(name, root) {
     },
   };
 }
-async function bridge(native) {
+async function bridge(native, overrides = {}) {
   const page = await browser.newPage({
     viewport: { width: 1180, height: 800 },
   });
   page.on("pageerror", (e) => errors.push(String(e)));
-  await page.exposeFunction("nativeInvoke", async (command, args) =>
-    native.request(command, args),
-  );
+  await page.exposeFunction("nativeInvoke", async (command, args) => {
+    const override = overrides[command];
+    return override ? override(args) : native.request(command, args);
+  });
   await page.addInitScript(() => {
     const callbacks = new Set();
     window.publishNativeStatus = (status) =>
@@ -94,9 +95,7 @@ async function bridge(native) {
   });
   await page.goto(appUrl);
   await page.waitForLoadState("networkidle");
-  await page
-    .getByRole("heading", { name: "Connect your computers", exact: true })
-    .waitFor();
+  await page.getByRole("navigation").waitFor();
   return page;
 }
 async function push() {
@@ -213,7 +212,9 @@ test("three destinations, large local typography, honest first launch at three s
   await pageA.setViewportSize({ width: 1180, height: 800 });
   assert.equal(
     await pageA
-      .getByText("Real LearnHarness sync is not enabled.", { exact: true })
+      .getByText("Connect a managed LearnHarness 0.6.1 profile in Settings.", {
+        exact: true,
+      })
       .isVisible(),
     true,
   );
@@ -463,4 +464,63 @@ test("divergent histories stay preserved and Home leads directly to conflict rev
   await pageA.setViewportSize({ width: 1180, height: 800 });
   await shot(pageA, "conflict-review");
   assert.deepEqual(errors, []);
+});
+
+test("managed apply requires explicit consent and reports application readback separately", async () => {
+  const applied = [];
+  const managedPage = await bridge(a, {
+    settings: async () => ({
+      version: 2,
+      name: "Studio desktop",
+      production_mutation: false,
+      installation: "LearnHarness 0.6.1 verified",
+      profile: "/managed/test",
+      detected: true,
+    }),
+    managed_status: async () => "saved",
+    status: async () => ({
+      ...(await a.request("status")),
+      detected: true,
+      managed_exports: [{ revision: "a".repeat(64), files: 6, bytes: 4932 }],
+    }),
+    managed_apply: async (args) => {
+      applied.push(args);
+      return { state: "awaiting_readback", applied: true };
+    },
+  });
+  try {
+    await managedPage
+      .getByRole("button", { name: "Settings", exact: true })
+      .click();
+    await managedPage
+      .getByRole("heading", { name: "Managed LearnHarness", exact: true })
+      .waitFor();
+    const apply = managedPage.getByRole("button", {
+      name: "Apply verified revision",
+      exact: true,
+    });
+    assert.equal(
+      await apply.isDisabled(),
+      true,
+      "Real-data apply must start unchecked",
+    );
+    await managedPage
+      .getByRole("checkbox", {
+        name: /I authorize applying this verified revision/,
+      })
+      .check();
+    await apply.click();
+    await managedPage
+      .getByText(/managed profile is updated and backed up/i)
+      .waitFor();
+    assert.deepEqual(applied, [{ revision: "a".repeat(64), confirmed: true }]);
+    assert.equal(
+      await managedPage
+        .getByRole("button", { name: "Apply verified revision", exact: true })
+        .count(),
+      0,
+    );
+  } finally {
+    await managedPage.close();
+  }
 });

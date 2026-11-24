@@ -6,7 +6,7 @@ Unofficial, local-first synchronization companion for LearnHarness.
 
 LearnHarness Sync is an independent, unofficial companion application for LearnHarness. It is not affiliated with or endorsed by the LearnHarness developers.
 
-**Experimental source for Linux x86_64.** Pair two computers, verify a test transfer or open LearnHarness 0.6.1 in an isolated offline profile. The normal desktop keeps real conversation import, export and peer application disabled. A separate qualification suite runs actual LearnHarness round trips on disposable profiles. [Release status](https://github.com/tenkejj/learnharness-sync/releases) · [Upstream project](https://github.com/amosblomqvist/learnharness)
+**Experimental Linux x86_64 desktop.** For the pinned LearnHarness 0.6.1 AppImage, LearnHarness Sync supports explicitly consented transfers between isolated managed profiles. Incoming content stays quarantined until the user applies it; completion requires reopening LearnHarness and verifying application readback. No public binary is offered while physical-device acceptance and dependency redistribution reviews remain open. [Release status](https://github.com/tenkejj/learnharness-sync/releases) · [Upstream project](https://github.com/amosblomqvist/learnharness)
 
 ![Home in the packaged Linux application, captured with a disposable profile](docs/evidence/ux/packaged-linux.png)
 
@@ -20,7 +20,7 @@ chmod u+x LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage
 ./LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage
 ```
 
-On Ubuntu, install the local DEB with `sudo apt install ./LearnHarness-Sync_0.2.0-alpha.1_amd64.deb`. On Fedora, use `sudo dnf install ./LearnHarness-Sync-0.2.0-alpha.1-1.x86_64.rpm`. Launch **LearnHarness Sync** from the application menu. The private packages were exercised in Ubuntu 24.04.5 and Fedora 44 userlands. Other architectures and Windows/macOS installers remain unqualified. [Second-computer instructions](docs/SECOND_COMPUTER.md)
+On Ubuntu, install the locally built DEB with `sudo apt install ./LearnHarness-Sync_0.2.0-alpha.1_amd64.deb`. On Fedora, use `sudo dnf install ./LearnHarness-Sync-0.2.0-alpha.1-1.x86_64.rpm`. Launch **LearnHarness Sync** from the application menu. The private packages were exercised in Ubuntu 24.04.5 and Fedora 44 userlands. Other architectures and Windows/macOS installers remain unqualified. [Second-computer instructions](docs/SECOND_COMPUTER.md)
 
 ## Pair and verify a transfer
 
@@ -32,16 +32,26 @@ On Ubuntu, install the local DEB with `sudo apt install ./LearnHarness-Sync_0.2.
 
 Each installation creates its own Ed25519 identity. Local discovery helps find peers. The trust store pins the approved certificate. The receiver checks each object's SHA-256 digest and the revision's ancestry. A fast-forward preserves the old head in an independent backup. Offline edits can create two branches, which remain available for inspection. There is no automatic conflict merge. [Protocol](docs/PROTOCOL.md) · [Recovery](docs/RECOVERY.md)
 
+## Synchronize managed LearnHarness profiles
+
+1. Install the exact LearnHarness 0.6.1 x86_64 AppImage at `~/Applications/LearnHarness-0.6.1-x86_64.AppImage` on both computers and pair the two LearnHarness Sync installations.
+2. In Settings, open **Managed LearnHarness**. Create or use content in this separate offline profile, then close LearnHarness cleanly. Your ordinary LearnHarness profile is not opened or changed.
+3. Select the paired device, check the authorization box, and choose **Send verified copy**. A verified transfer means the receiver has content in quarantine; it does not mean its application profile changed.
+4. On the receiver, check the revision-specific authorization box and choose **Apply verified revision**. LearnHarness Sync makes an independent backup, applies inside the managed vault, and asks you to reopen and cleanly close LearnHarness to confirm readback.
+5. Repeat in the opposite direction for new content from the second managed profile.
+
+Only the verified 0.6.1 profile contract is accepted. Unsupported files, records or conflicting edits stop the operation. See [the packaged A→B→A and recovery evidence](docs/PRODUCTION_SYNC_ACCEPTANCE.md).
+
 ## LearnHarness compatibility
 
-At startup the desktop checks the executable at `~/Applications/LearnHarness-0.6.1-x86_64.AppImage` against the exact size and digest of the upstream release. Home and Settings report the result. Production import and export stay disabled. [Pinned upstream release](https://github.com/amosblomqvist/learnharness/releases/tag/v0.6.1)
+At startup the desktop checks the executable at `~/Applications/LearnHarness-0.6.1-x86_64.AppImage` against the exact size and digest of the upstream release. Home and Settings report the result. The real-data workflow only runs against this pinned executable inside its isolated managed profile. [Pinned upstream release](https://github.com/amosblomqvist/learnharness/releases/tag/v0.6.1)
 
 | | Verified scope |
 |---|---|
-| Installed desktop | Pinned executable detection, local backup inspection, LAN discovery, mutual pairing, remote verification, test revisions, history and restore |
-| Managed integration suite | Version 2 teach/practice sessions, Unicode titles, plain-text user and assistant turns with the tested keyless provider, turn metadata, graph propositions, single- and multi-premise chains, message provenance, coverage and saved layout |
+| Installed desktop | Pinned executable detection, isolated managed sessions, consented real-data export, quarantine, backed-up Apply and application readback, plus LAN pairing and synthetic test revisions |
+| Verified managed contract | Version 2 teach/practice sessions, Unicode titles, plain-text user and assistant turns with the tested keyless provider, turn metadata, graph propositions, single- and multi-premise chains, message provenance, coverage and saved layout |
 | Excluded from the wire | Device settings, credentials, Electron state, caches and logs. Unknown durable records, jobs, plugins and attachments cause refusal. Text that users put in a message is still message content. |
-| Unqualified | Unmanaged writable profiles, arbitrary models and tools, imported notes, historical graph compaction, power loss and a real-profile trial on two physical laptops |
+| Unqualified | Unmanaged writable profiles, arbitrary models and tools, imported notes, historical graph compaction, cold power loss and two-physical-laptop acceptance |
 
 To check a backup, open **Settings → Advanced → Check a LearnHarness backup** and enter the absolute path to its read-only Btrfs subvolume root. The desktop reports counts of supported sessions, propositions and chains. Jobs, unsupported provider records, unknown files and attachments stop inspection. Records stay on the computer. The inspector does not read device settings or credentials and has a 16 MiB input limit.
 
@@ -53,7 +63,7 @@ The window runs offline with a private display and HOME. A clean exit saves a re
 
 A subordinate UID owns the profile under a mode-0700 directory. The kernel denies an ordinary desktop process access even if it knows the path. A private PID namespace contains the application and its server. Capture and apply require the managed operation lock. An interrupted supervisor leaves the profile quarantined.
 
-In the qualification suite, the native adapter captures the closed profile, records which revision the application last opened, and compares that version with incoming history. It verifies a complete independent backup and staged tree before an atomic directory exchange. The real application reopens the result before the integration suite confirms adoption. The migration test starts from a separate, disposable installation and a read-only Btrfs backup. The desktop exposes no live-profile migration button. [Qualification and boundaries](docs/MANAGED_LINUX.md)
+The packaged native adapter captures a closed managed profile, records which revision the application last opened, and compares it with incoming history. It verifies a complete independent backup and staged tree before an atomic directory exchange. The real application reopens the result before the desktop confirms adoption. The migration test starts from a separate, disposable installation and a read-only Btrfs backup. The desktop exposes no live-profile migration button. [Qualification and boundaries](docs/MANAGED_LINUX.md)
 
 ## Troubleshooting
 

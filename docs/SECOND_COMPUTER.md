@@ -43,8 +43,12 @@ Do **not** copy a native profile, `identity.json`, or `devices.json` to the othe
 computer: each machine needs its own independent identity. Copy only the app or
 source archive. No LearnHarness data directory is needed or accepted.
 
-Real LearnHarness synchronization remains disabled. This is a functioning
-synthetic LAN test candidate, not a production chat/knowledge-graph sync release.
+The managed LearnHarness 0.6.1 workflow supports explicitly consented transfer
+between isolated managed profiles, with quarantine, independent backup, Apply
+and real application readback. The current candidate has been exercised with
+two packaged peers on one host; acceptance on two physical computers is still
+required before a binary beta is published. The ordinary LearnHarness profile
+is not opened or modified.
 
 ## Build from source
 

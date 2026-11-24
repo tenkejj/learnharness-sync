@@ -207,9 +207,11 @@ pub fn merge_records(current: &Payload, incoming: &Payload) -> Result<Payload> {
     let mut merged = incoming.clone();
     for (path, old) in current {
         let Some(new) = incoming.get(path) else {
-            anyhow::bail!(
-                "Incoming revision omits local record {path}; both histories were preserved"
-            );
+            // File inventory is additive. A conversation or graph file that
+            // exists only on this device is a local history branch, not a
+            // deletion request from the sender.
+            merged.insert(path.clone(), old.clone());
+            continue;
         };
         if old == new {
             continue;
@@ -521,6 +523,13 @@ pub fn apply_incoming(
         "Independent backup does not match the prior managed profile"
     );
     sync_dir(&backups)?;
+
+    #[cfg(feature = "managed-acceptance")]
+    if std::env::var("LEARNHARNESS_SYNC_ACCEPTANCE_FAILPOINT").as_deref()
+        == Ok("enospc-after-backup")
+    {
+        return Err(std::io::Error::from(std::io::ErrorKind::StorageFull).into());
+    }
 
     let new_generation = format!("session.{}", uuid()?);
     let new_path = vault.join(&new_generation);

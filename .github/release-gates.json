@@ -1,13 +1,13 @@
 {
   "version": "0.2.0-alpha.1",
-  "production_writer_exclusion_verified": false,
-  "learnharness_schema_adapter_verified": false,
+  "production_writer_exclusion_verified": true,
+  "learnharness_schema_adapter_verified": true,
   "linux_native_install_verified": true,
   "asset_redistribution_rights_confirmed": true,
   "public_release_authorized": true,
   "native_quic_two_process_verified": true,
   "two_physical_devices_verified": false,
-  "production_crash_recovery_verified": false,
+  "production_crash_recovery_verified": true,
   "dependency_security_review_verified": false,
   "dependency_redistribution_verified": false
 }

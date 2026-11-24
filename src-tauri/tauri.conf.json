@@ -27,7 +27,7 @@
     "active": true,
     "category": "Utility",
     "shortDescription": "Unofficial, local-first synchronization companion for LearnHarness",
-    "longDescription": "Independent, unofficial LearnHarness companion. Experimental Linux desktop with managed sessions, encrypted LAN pairing and verified test transfers. Production profile synchronization is disabled.",
+    "longDescription": "Independent, unofficial LearnHarness companion. Linux desktop for explicitly consented managed-profile synchronization on the tested LearnHarness 0.6.1 release, with encrypted LAN pairing, durable backups and application readback.",
     "targets": ["appimage", "deb", "rpm"],
     "resources": {
       "../LICENSE": "licenses/LearnHarness-Sync-MIT.txt",

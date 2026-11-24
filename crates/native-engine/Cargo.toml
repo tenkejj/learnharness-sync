@@ -26,6 +26,7 @@ tempfile = "3"
 
 [features]
 learnharness-qa = ["harness-sync-core/learnharness-qa"]
+managed-acceptance = []
 
 [target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
 rustix = { version = "1", features = ["fs"] }

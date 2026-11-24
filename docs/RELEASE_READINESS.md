@@ -1,12 +1,12 @@
 # Linux release status
 
-LearnHarness Sync is an experimental source project. Binary publication remains gated on production qualification. The desktop supports a dedicated offline managed window, read-only Btrfs inspection and authenticated test transfers. The integration suite covers real LearnHarness 0.6.1 transcript and graph round trips. Public beta qualification requires a supported provider, explicit consent for real-data sharing, verified application of received data through the ordinary desktop, physical-device acceptance and dependency reviews. [Managed sessions](MANAGED_LINUX.md) · [Name and artwork](NAME_SCREEN.md)
+LearnHarness Sync is an experimental source project. The pinned LearnHarness 0.6.1 managed workflow now has packaged A→B→A application readback and transaction recovery evidence; see [PRODUCTION_SYNC_ACCEPTANCE.md](PRODUCTION_SYNC_ACCEPTANCE.md). Binary publication remains gated on physical-device acceptance and third-party dependency security, corresponding-source and license-notice reviews. Managed-profile writer exclusion and the tested schema adapter are qualified for the documented 0.6.1 contract; they do not certify arbitrary providers or profiles. [Managed sessions](MANAGED_LINUX.md) · [Name and artwork](NAME_SCREEN.md)
 
 ## Local install and dependency checks
 
 The AppImage runs in direct and extraction modes. The DEB and RPM tests launch the previous 0.1.0-beta build and the renamed 0.2.0-alpha.1 build in disposable Ubuntu 24.04.5 and Fedora 44 environments. They preserve the generated identity, trust store, ledger, objects, manifests and backups byte-for-byte. The new package uses `io.github.tenkejj.learnharness-sync` while deliberately opening the established native store at the legacy internal path. No duplicate store is created. Physical hardware acceptance remains open.
 
-The earlier picomatch advisory was withdrawn on November 18. The subsequent full and production-only npm audits reported no vulnerabilities. The private build retains the locked dependency versions. [Advisory disposition](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+The latest npm audit reported no vulnerabilities. The latest RustSec review still reports advisories for chrono, proc-macro-error and glib; they require a documented security disposition before binary publication. [Advisory disposition](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
 
 The locked Cargo graph has 487 packages with declared license expressions. The AppImage review identified 164 top-level shared libraries. Its components include GTK, WebKitGTK, GnuTLS, GLib and libunistring. The package indexes provide initial license attribution. Verifying the exact bundled versions, corresponding source and license notices for binary redistribution is still open. RustSec reports and extracted artifact credential scans address separate questions. The standalone LearnHarness AppImage and its source are excluded from this project.
 

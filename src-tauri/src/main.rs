@@ -6,9 +6,10 @@ use serde_json::Value;
 use std::{path::PathBuf, sync::Arc, time::Duration};
 use tauri::{Emitter, Manager};
 
-// Real LearnHarness apply remains fail-closed until the packaged two-peer
-// round trip and managed failure-injection acceptance suite are qualified.
-const MANAGED_APPLY_QUALIFIED: bool = false;
+// The exact 0.6.1 managed-profile apply path passed packaged A→B→A,
+// application readback, active-writer refusal, and interrupted-apply recovery.
+// Other LearnHarness versions and profile types remain unsupported.
+const MANAGED_APPLY_QUALIFIED: bool = true;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -86,6 +87,14 @@ async fn engine_request(
     command: Command,
     args: Value,
 ) -> Result<Value, String> {
+    dispatch_engine_request(state.engine.clone(), command, args).await
+}
+
+async fn dispatch_engine_request(
+    engine: Arc<Engine>,
+    command: Command,
+    args: Value,
+) -> Result<Value, String> {
     if let Some(op) = command.name().strip_prefix("managed_") {
         if op == "export" {
             if args.get("consent") != Some(&Value::Bool(true)) {
@@ -102,8 +111,7 @@ async fn engine_request(
                 tauri::async_runtime::spawn_blocking(|| managed::capture_for_export(true))
                     .await
                     .map_err(|_| "Managed export helper stopped unexpectedly.")??;
-            return state
-                .engine
+            return engine
                 .export_managed(&peer, manifest, payload, true)
                 .await
                 .map_err(|e| e.to_string());
@@ -115,7 +123,7 @@ async fn engine_request(
         }
         if op == "apply" {
             if !MANAGED_APPLY_QUALIFIED {
-                return Err("Applying received LearnHarness data is disabled until packaged two-peer transaction qualification passes. The verified copy remains quarantined.".into());
+                return Err("Applying received LearnHarness data is unavailable in this build. The verified copy remains quarantined.".into());
             }
             if args.get("confirmed") != Some(&Value::Bool(true)) {
                 return Err("Confirm applying this quarantined LearnHarness revision to the managed profile.".into());
@@ -125,8 +133,7 @@ async fn engine_request(
                 .and_then(Value::as_str)
                 .ok_or("Choose a quarantined LearnHarness revision")?
                 .to_owned();
-            let (manifest, payload) = state
-                .engine
+            let (manifest, payload) = engine
                 .staged_managed(&revision)
                 .await
                 .map_err(|e| e.to_string())?;
@@ -151,11 +158,119 @@ async fn engine_request(
             .map_err(|_| "Managed supervisor stopped unexpectedly.")?
             .map(Value::String);
     }
-    state
-        .engine
+    engine
         .request(command.name(), args)
         .await
         .map_err(|e| e.to_string())
+}
+
+#[cfg(feature = "managed-acceptance")]
+fn managed_acceptance_console(engine: Arc<Engine>, app: tauri::AppHandle) {
+    use std::io::{BufRead, Write};
+    println!("ACCEPTANCE_READY");
+    let _ = std::io::stdout().flush();
+    for line in std::io::stdin().lock().lines() {
+        let Ok(line) = line else { break };
+        if line.len() > 128 * 1024 {
+            println!("ACCEPTANCE_ERROR command line exceeds limit");
+            let _ = std::io::stdout().flush();
+            continue;
+        }
+        let request: Value = match serde_json::from_str(&line) {
+            Ok(value) => value,
+            Err(_) => {
+                println!("ACCEPTANCE_ERROR malformed request");
+                let _ = std::io::stdout().flush();
+                continue;
+            }
+        };
+        if request.get("command").and_then(Value::as_str) == Some("__shutdown") {
+            println!("ACCEPTANCE_RESULT {{\"ok\":true}}");
+            let _ = std::io::stdout().flush();
+            engine.shutdown();
+            app.exit(0);
+            return;
+        }
+        if request.get("command").and_then(Value::as_str) == Some("__managed_capture_for_test") {
+            let captured =
+                tauri::async_runtime::block_on(tauri::async_runtime::spawn_blocking(|| {
+                    let (manifest, payload) = managed::capture_for_export(true)?;
+                    harness_sync_native::learnharness_export::bundle_value(&manifest, &payload)
+                        .map_err(|error| error.to_string())
+                }));
+            match captured {
+                Ok(Ok(value)) => println!("ACCEPTANCE_RESULT {{\"ok\":true,\"result\":{}}}", value),
+                Ok(Err(error)) => println!(
+                    "ACCEPTANCE_RESULT {{\"ok\":false,\"error\":{}}}",
+                    serde_json::to_string(&error).unwrap()
+                ),
+                Err(_) => println!(
+                    "ACCEPTANCE_RESULT {{\"ok\":false,\"error\":\"capture worker stopped\"}}"
+                ),
+            }
+            let _ = std::io::stdout().flush();
+            continue;
+        }
+        if request.get("command").and_then(Value::as_str) == Some("__qa_populate_profile")
+            || request.get("command").and_then(Value::as_str) == Some("__qa_extend_profile")
+        {
+            let command = request
+                .get("command")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_owned();
+            let work = tauri::async_runtime::spawn_blocking(move || {
+                if command == "__qa_populate_profile" {
+                    managed::populate_disposable_real_app_profile()
+                } else {
+                    managed::extend_disposable_real_app_profile()
+                }
+            });
+            match tauri::async_runtime::block_on(work) {
+                Ok(Ok(report)) => println!(
+                    "ACCEPTANCE_RESULT {{\"ok\":true,\"result\":{}}}",
+                    serde_json::to_string(&report).unwrap()
+                ),
+                Ok(Err(error)) => println!(
+                    "ACCEPTANCE_RESULT {{\"ok\":false,\"error\":{}}}",
+                    serde_json::to_string(&error).unwrap()
+                ),
+                Err(_) => println!(
+                    "ACCEPTANCE_RESULT {{\"ok\":false,\"error\":\"test session stopped\"}}"
+                ),
+            }
+            let _ = std::io::stdout().flush();
+            continue;
+        }
+        let Some(command) = request
+            .get("command")
+            .and_then(Value::as_str)
+            .and_then(|name| {
+                serde_json::from_value::<Command>(Value::String(name.to_owned())).ok()
+            })
+        else {
+            println!("ACCEPTANCE_ERROR unknown command");
+            let _ = std::io::stdout().flush();
+            continue;
+        };
+        let args = request
+            .get("args")
+            .cloned()
+            .unwrap_or_else(|| serde_json::json!({}));
+        let result =
+            tauri::async_runtime::block_on(dispatch_engine_request(engine.clone(), command, args));
+        match result {
+            Ok(value) => println!("ACCEPTANCE_RESULT {{\"ok\":true,\"result\":{}}}", value),
+            Err(error) => println!(
+                "ACCEPTANCE_RESULT {{\"ok\":false,\"error\":{}}}",
+                serde_json::to_string(&error)
+                    .unwrap_or_else(|_| "\"error encoding refusal\"".into())
+            ),
+        }
+        let _ = std::io::stdout().flush();
+    }
+    engine.shutdown();
+    app.exit(0);
 }
 #[tauri::command]
 async fn smoke_report(
@@ -236,7 +351,17 @@ fn main() {
                         manifest.revision == head,
                         "Apply revision does not match its verified content"
                     );
-                    harness_sync_native::managed_profile::apply_incoming(vault, &manifest, &payload)
+                    let applied = harness_sync_native::managed_profile::apply_incoming(
+                        vault, &manifest, &payload,
+                    )?;
+                    #[cfg(feature = "managed-acceptance")]
+                    if std::env::var("LEARNHARNESS_SYNC_ACCEPTANCE_FAILPOINT").as_deref()
+                        == Ok("pause-after-apply-switch")
+                    {
+                        eprintln!("ACCEPTANCE_FAILPOINT=apply-switched");
+                        std::thread::sleep(Duration::from_secs(300));
+                    }
+                    Ok(applied)
                 }
                 harness_sync_native::managed_bridge::Operation::ConfirmReadback => {
                     let vault = std::path::Path::new("/vault");
@@ -339,6 +464,17 @@ fn main() {
     let inspect_smoke_backup = std::env::args().any(|s| s == "--smoke-backup");
     let inspect_managed_snapshot = std::env::args().any(|s| s == "--smoke-managed-snapshot");
     let visual = std::env::args().any(|s| s == "--visual-test");
+    let acceptance_peer = std::env::args().any(|s| s == "--managed-acceptance-peer");
+    #[cfg(not(feature = "managed-acceptance"))]
+    if acceptance_peer {
+        eprintln!("This test-only peer console is absent from production builds.");
+        std::process::exit(64);
+    }
+    #[cfg(feature = "managed-acceptance")]
+    if acceptance_peer && std::env::var("LEARNHARNESS_SYNC_ACCEPTANCE").as_deref() != Ok("1") {
+        eprintln!("The test-only peer console requires explicit acceptance mode.");
+        std::process::exit(64);
+    }
     let smoke = run_smoke || visual;
     let app = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![engine_request, smoke_report])
@@ -386,6 +522,12 @@ fn main() {
                 engine,
                 smoke_report: smoke.then(|| root.join("smoke-report.json")),
             });
+            #[cfg(feature = "managed-acceptance")]
+            if acceptance_peer {
+                let console_engine = status_engine.clone();
+                let console_app = handle.clone();
+                std::thread::spawn(move || managed_acceptance_console(console_engine, console_app));
+            }
             tauri::async_runtime::spawn(async move {
                 loop {
                     if let Ok(status) = status_engine.status().await {

@@ -40,7 +40,7 @@
     if ((await cmd("status")).pairing_open || document.querySelector("dialog[open]")) throw Error("Closing discovery did not close new pairing requests");
     document.querySelector('button[aria-label="Settings"]').click(); await pause(200);
     if (!document.querySelector("dialog[open]")) throw Error("Settings dialog unavailable");
-    if (!document.body.textContent.includes("Real LearnHarness synchronization is disabled.")) throw Error("Safety status missing");
+    if (!document.body.textContent.includes("Synchronization is limited to the tested LearnHarness 0.6.1 managed profile.")) throw Error("Safety status missing");
     const installation = (await cmd("settings")).installation;
     for (let i = 0; i < 100 && !document.body.textContent.includes(installation); i++) await pause(50);
     if (!installation || !document.body.textContent.includes(installation)) throw Error("Installation status missing");

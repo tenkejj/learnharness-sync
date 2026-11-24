@@ -76,11 +76,16 @@ if [[ $op == apply || $op == confirm ]]; then
     printf 'confirm\n' > active
   fi
   sync -f .
+  helper_acceptance_env=()
+  if [[ $op == apply && ${LEARNHARNESS_SYNC_ACCEPTANCE_FAILPOINT:-} == pause-after-apply-switch\
+     || $op == apply && ${LEARNHARNESS_SYNC_ACCEPTANCE_FAILPOINT:-} == enospc-after-backup ]]; then
+    helper_acceptance_env+=(--setenv LEARNHARNESS_SYNC_ACCEPTANCE_FAILPOINT "${LEARNHARNESS_SYNC_ACCEPTANCE_FAILPOINT}")
+  fi
   if bwrap --die-with-parent --unshare-all --clearenv \
     --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
     --proc /proc --dev /dev \
     --ro-bind /helper /helper --bind "$PWD" /vault --chdir /vault \
-    --setenv PATH /usr/bin --setenv LANG C.UTF-8 /helper --managed-bridge-stdio; then
+    --setenv PATH /usr/bin --setenv LANG C.UTF-8 "${helper_acceptance_env[@]}" /helper --managed-bridge-stdio; then
     rm -- active
     sync -f .
   else
@@ -97,9 +102,9 @@ if [[ $op == apply || $op == confirm ]]; then
   exit
 fi
 qa_app_mounts=()
-if [[ $op == qa-populate ]]; then
+if [[ $op == qa-populate || $op == qa-extend ]]; then
   [[ $number =~ ^[0-9]+$ && $qa_log == 1 && $qa_root == /* && $5 == '' ]] || { echo 'Invalid real-application capture acceptance request.' >&2; exit 64; }
-  qa_app_mounts+=(--ro-bind /probe.mjs /probe.mjs --ro-bind /provider.mjs /provider.mjs --ro-bind /node_modules /node_modules)
+  qa_app_mounts+=(--ro-bind /probe.mjs /probe.mjs --ro-bind /provider.mjs /provider.mjs --ro-bind /close-window /close-window --ro-bind /node_modules /node_modules)
 elif [[ $op != launch ]]; then
   exit 64
 fi
@@ -130,7 +135,7 @@ run_app() {
     echo localhost >/etc/hostname
     echo "learner:x:1:1:Managed:/profile:/bin/sh" >/etc/passwd
     echo "learner:x:1:" >/etc/group
-    if [[ "$1" == qa ]]; then
+    if [[ "$1" == qa-populate || "$1" == qa-extend ]]; then
       /app/learnharness --disable-gpu --remote-debugging-port=9222 >/tmp/learnharness.log 2>&1 &
       app=$!
       for _ in {1..400}; do
@@ -139,11 +144,13 @@ run_app() {
         sleep .1
       done
       curl -fsS http://127.0.0.1:9222/json/version >/dev/null || { cat /tmp/learnharness.log >&2; kill "$app" 2>/dev/null || true; wait "$app" 2>/dev/null || true; exit 1; }
-      node /probe.mjs transcript Managed || { kill "$app" 2>/dev/null || true; wait "$app" 2>/dev/null || true; exit 1; }
+      if [[ "$1" == qa-populate ]]; then phase=transcript; label=Managed; else phase=extend-transcript; label=Managed; fi
+      node /probe.mjs "$phase" "$label" || { kill "$app" 2>/dev/null || true; wait "$app" 2>/dev/null || true; exit 1; }
+      if /close-window --ready >/dev/null 2>&1; then /close-window >/dev/null; fi
       wait "$app"
     else
       exec /app/learnharness --disable-gpu
-    fi' managed "$([[ $op == qa-populate ]] && echo qa || echo app)" 9<&-
+    fi' managed "$op" 9<&-
 }
 if [[ $qa_log == 1 ]]; then
   run_app || { echo 'Managed LearnHarness stopped abnormally. Recovery required.' >&2; exit 76; }
@@ -151,7 +158,7 @@ else
   run_app >/dev/null 2>&1 || { echo 'Managed LearnHarness stopped abnormally. Recovery required.' >&2; exit 76; }
 fi
 [[ -z $(find "$run" -mindepth 1 -inum 256 -print -quit) ]] || { echo 'Nested subvolume requires manual recovery.' >&2; exit 76; }
-if [[ $op == qa-populate ]]; then
+if [[ $op == qa-populate || $op == qa-extend ]]; then
   node /managed-manifest.mjs "$PWD/$run"
   rm -f -- "$run/transcript-id" "$run/expected-transcript.json"
 fi

@@ -2,7 +2,7 @@
 //! The separate backup inspector only accepts an immutable Btrfs source.
 use anyhow::{bail, Result};
 use harness_sync_core::Payload;
-pub const PRODUCTION_BLOCK: &str = "Real profile sync is disabled. The managed writer and schema checks are qualified only in the isolated Linux integration suite.";
+pub const PRODUCTION_BLOCK: &str = "The legacy direct-profile commands remain disabled; use the explicitly consented LearnHarness 0.6.1 managed-profile workflow.";
 pub fn production_operation() -> Result<()> {
     bail!(PRODUCTION_BLOCK)
 }

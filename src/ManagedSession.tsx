@@ -16,6 +16,8 @@ export function ManagedSession() {
     bytes: number;
     applied: false;
   } | null>(null);
+  const [applyConsentRevision, setApplyConsentRevision] = useState("");
+  const [appliedRevision, setAppliedRevision] = useState("");
   const [staged, setStaged] = useState<
     { revision: string; files: number; bytes: number }[]
   >([]);
@@ -188,21 +190,64 @@ export function ManagedSession() {
           <p>
             Received revisions remain separate until you explicitly apply one.
             Existing local history is retained and merged; conflicts are refused
-            for review.
+            for review. A durable backup is created before the managed profile
+            changes.
           </p>
-          <p role="status">
-            Real LearnHarness apply is disabled pending packaged two-device
-            transaction qualification. Received data remains quarantined and
-            your managed profile is unchanged.
-          </p>
-          {staged.map((revision) => (
-            <div className="managed-staged" key={revision.revision}>
-              <p>
-                {revision.files} files · {revision.bytes.toLocaleString()} bytes
-                · {revision.revision.slice(0, 12)}
-              </p>
-            </div>
-          ))}
+          {staged
+            .filter((revision) => revision.revision !== appliedRevision)
+            .map((revision) => (
+              <div className="managed-staged" key={revision.revision}>
+                <p>
+                  {revision.files} files · {revision.bytes.toLocaleString()}{" "}
+                  bytes · {revision.revision.slice(0, 12)}
+                </p>
+                {idle && (
+                  <>
+                    <label className="check-row">
+                      <input
+                        type="checkbox"
+                        checked={applyConsentRevision === revision.revision}
+                        onChange={(e) =>
+                          setApplyConsentRevision(
+                            e.target.checked ? revision.revision : "",
+                          )
+                        }
+                      />
+                      I authorize applying this verified revision to the managed
+                      LearnHarness profile. I will reopen LearnHarness and close
+                      it cleanly so the application can confirm the result.
+                    </label>
+                    <button
+                      disabled={
+                        busy ||
+                        !!statusError ||
+                        applyConsentRevision !== revision.revision
+                      }
+                      onClick={() =>
+                        void run(async () => {
+                          await command("managed_apply", {
+                            revision: revision.revision,
+                            confirmed: true,
+                          });
+                          setAppliedRevision(revision.revision);
+                          setApplyConsentRevision("");
+                          setSnapshot(null);
+                          setState("awaiting-readback");
+                        })
+                      }
+                    >
+                      Apply verified revision
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
+          {state === "awaiting-readback" && (
+            <p role="status">
+              The managed profile is updated and backed up. Open LearnHarness
+              and close it cleanly to confirm application-level readback.
+            </p>
+          )}
         </div>
       )}
       {snapshot && (

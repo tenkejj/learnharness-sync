@@ -3,6 +3,13 @@ name = "learnharness-sync"
 version = "0.2.0-alpha.1"
 edition = "2021"
 license = "MIT"
+
+[features]
+default = []
+# Used only to build a disposable packaged acceptance binary. Never enable in
+# public release workflows; it exposes the test console and managed apply.
+managed-acceptance = ["harness-sync-native/managed-acceptance"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 [dependencies]

@@ -110,6 +110,15 @@ fn managed_merge_preserves_both_chat_branches_and_rejects_identity_edits() -> Re
     let base = valid_learnharness_payload();
     let mut local = base.clone();
     let mut incoming = base.clone();
+    let local_only = serde_json::json!({
+        "version":2,"id":"chat_local123_1234abcd","title":"Local-only session",
+        "createdAt":"2026-11-24T10:00:00.000Z","updatedAt":"2026-11-24T10:00:00.000Z",
+        "messages":[{"role":"user","id":"msg_localonly_1234abcd","content":"Keep this independent conversation","timestamp":1795514400000i64}]
+    });
+    local.insert(
+        "chats/chat_local123_1234abcd.json".into(),
+        serde_json::to_vec(&local_only)?,
+    );
     for (payload, id, body, timestamp) in [
         (
             &mut local,
@@ -148,6 +157,10 @@ fn managed_merge_preserves_both_chat_branches_and_rejects_identity_edits() -> Re
         .collect();
     assert!(ids.contains(&"msg_local_1234abcd"));
     assert!(ids.contains(&"msg_remote_1234abcd"));
+    assert_eq!(
+        merged["chats/chat_local123_1234abcd.json"],
+        serde_json::to_vec(&local_only)?
+    );
 
     let mut conflicting = incoming;
     let mut chat: serde_json::Value =

@@ -34,13 +34,14 @@ if (
   phase === "verify-transcript" ||
   phase === "configure" ||
   phase === "rename-transcript" ||
+  phase === "extend-transcript" ||
   phase === "branch" ||
   phase === "path-reference"
 ) {
   const { startProvider } = await import("/provider.mjs");
   const provider = await startProvider();
   let id;
-  if (phase === "transcript" || phase === "configure") {
+  if (phase === "transcript" || phase === "configure" || phase === "extend-transcript") {
     await page.evaluate(async () => {
       const route = "/api/custom-provider";
       const previous = await fetch(route);
@@ -83,6 +84,11 @@ if (
       if ((await request("/api/graph")).propositions.length) break;
       await new Promise((r) => setTimeout(r, 150));
     }
+  } else if (phase === "extend-transcript") {
+    const { chats } = await request("/api/chats");
+    assert.equal(chats.length, 1, "The disposable peer profile must contain the imported session only");
+    id = chats[0].id;
+    writeFileSync("/profile/transcript-id", id);
   } else if (phase !== "configure")
     id = readFileSync("/profile/transcript-id", "utf8");
   if (phase !== "configure") {
@@ -116,6 +122,16 @@ if (
         if (current.messages.length === 6 && !current.turnInFlight) break;
         await new Promise((r) => setTimeout(r, 100));
       }
+    }
+    if (phase === "extend-transcript") {
+      const text = "Follow-up created on the second packaged peer – 続き ✓";
+      await request("/api/chat", "POST", { chatId: id, input: { type: "text", text } });
+      for (let i = 0; i < 150; i++) {
+        const current = await request("/api/chats/" + id);
+        if (current.messages.length >= 6 && !current.turnInFlight) break;
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      assert.ok((await request("/api/chats/" + id)).messages.some((m) => m.content === text));
     }
     if (phase === "branch")
       await request("/api/chats/" + id, "PUT", {
@@ -151,7 +167,7 @@ if (
     assert.ok(graph.positions[graph.chains.find((c) => c.premises.length === 2).id]);
     const persisted = { messages: chat.messages, chains: graph.chains, positions: graph.positions, propositions: graph.propositions };
     const oracle = "/profile/expected-transcript.json";
-    if (phase === "transcript" || phase === "rename-transcript") {
+    if (phase === "transcript" || phase === "rename-transcript" || phase === "extend-transcript") {
       writeFileSync(oracle, JSON.stringify(persisted));
     } else if (phase === "verify-transcript") {
       assert.deepEqual(persisted, JSON.parse(readFileSync(oracle, "utf8")));

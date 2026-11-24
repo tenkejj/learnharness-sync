@@ -288,6 +288,17 @@ fn request_via(
     if qa_probe {
         cmd.env("LEARNHARNESS_SYNC_MANAGED_QA_LOG", "1");
     }
+    #[cfg(feature = "managed-acceptance")]
+    if supervisor_operation == "apply" {
+        if let Ok(failpoint) = std::env::var("LEARNHARNESS_SYNC_ACCEPTANCE_FAILPOINT") {
+            if matches!(
+                failpoint.as_str(),
+                "pause-after-apply-switch" | "enospc-after-backup"
+            ) {
+                cmd.env("LEARNHARNESS_SYNC_ACCEPTANCE_FAILPOINT", failpoint);
+            }
+        }
+    }
     for key in ["HOME", "XDG_DATA_HOME"] {
         if let Some(value) = std::env::var_os(key) {
             cmd.env(key, value);
@@ -404,13 +415,59 @@ pub fn request(
     Err("Managed snapshots require Linux x86_64".into())
 }
 
-#[cfg(all(debug_assertions, target_os = "linux", target_arch = "x86_64"))]
+#[cfg(all(
+    any(debug_assertions, feature = "managed-acceptance"),
+    target_os = "linux",
+    target_arch = "x86_64"
+))]
 pub fn populate_disposable_real_app_profile() -> Result<String, String> {
+    qa_real_app_session("qa-populate")
+}
+
+#[cfg(all(
+    feature = "managed-acceptance",
+    target_os = "linux",
+    target_arch = "x86_64"
+))]
+pub fn extend_disposable_real_app_profile() -> Result<String, String> {
+    qa_real_app_session("qa-extend")
+}
+
+#[cfg(any(
+    all(debug_assertions, target_os = "linux", target_arch = "x86_64"),
+    all(
+        feature = "managed-acceptance",
+        target_os = "linux",
+        target_arch = "x86_64"
+    )
+))]
+fn qa_real_app_session(operation: &str) -> Result<String, String> {
+    if !matches!(operation, "qa-populate" | "qa-extend") {
+        return Err("Unsupported disposable LearnHarness test operation".into());
+    }
     let qa_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .ok_or("Managed application test assets are unavailable")?
         .canonicalize()
         .map_err(|_| "Managed application test assets are unavailable")?;
+    let close_window = qa_root.join("build/managed-close-window");
+    let compiled = Command::new("/usr/bin/cc")
+        .args([
+            "-Wall",
+            "-Werror",
+            qa_root
+                .join("tests/learnharness/close-window.c")
+                .to_str()
+                .ok_or("Invalid managed application test path")?,
+            "-lX11",
+            "-o",
+        ])
+        .arg(&close_window)
+        .status()
+        .map_err(|_| "Could not build the disposable LearnHarness window closer")?;
+    if !compiled.success() {
+        return Err("Could not build the disposable LearnHarness window closer".into());
+    }
     let mut cmd = Command::new("/usr/bin/bash");
     cmd.env_clear()
         .env("PATH", "/usr/bin")
@@ -433,7 +490,7 @@ pub fn populate_disposable_real_app_profile() -> Result<String, String> {
             "-c",
             include_str!("../managed/host.sh"),
             "launcher",
-            "qa-populate",
+            operation,
             include_str!("../managed/worker.sh"),
             qa_root
                 .to_str()
