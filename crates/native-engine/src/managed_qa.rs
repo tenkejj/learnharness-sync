@@ -1,97 +1,17 @@
 //! Closed-profile transaction used only by the subordinate-UID Linux qualification runner.
 //! The caller owns the vault lock and has reaped the application PID namespace.
+use crate::managed_profile::Tree;
 use crate::storage::Store;
-use crate::storage::{atomic, nonce, private_dir, read, safe_path, sync_dir, MAX_METADATA};
+use crate::storage::{atomic, nonce, read, sync_dir};
 use anyhow::{bail, ensure, Context, Result};
-use harness_sync_core::{learnharness_061, sha256, Payload, MAX_FILE, MAX_FILES, MAX_TOTAL};
+use harness_sync_core::{learnharness_061, sha256, Payload};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::BTreeSet,
     ffi::CString,
     fs,
     os::unix::ffi::OsStrExt,
     path::{Path, PathBuf},
 };
-
-#[derive(Default, PartialEq, Eq)]
-struct Tree {
-    directories: BTreeSet<String>,
-    files: Payload,
-}
-
-impl Tree {
-    fn read(root: &Path) -> Result<Self> {
-        safe_path(root)?;
-        let mut tree = Self::default();
-        let mut total = 0;
-        for entry in fs::read_dir(root)? {
-            let entry = entry?;
-            let name = entry
-                .file_name()
-                .into_string()
-                .map_err(|_| anyhow::anyhow!("Invalid filename"))?;
-            if name == "settings.json" && entry.file_type()?.is_file() {
-                tree.files.insert(name, read(&entry.path(), MAX_METADATA)?);
-                continue;
-            }
-            ensure!(
-                entry.file_type()?.is_dir()
-                    && matches!(name.as_str(), "chats" | "graph" | "jobs" | "plugins"),
-                "Unknown profile inventory"
-            );
-            tree.directories.insert(name.clone());
-            for file in fs::read_dir(entry.path())? {
-                let file = file?;
-                let path = format!(
-                    "{}/{}",
-                    name,
-                    file.file_name().to_str().context("Invalid record name")?
-                );
-                ensure!(
-                    file.file_type()?.is_file() && learnharness_061::supported_path(&path),
-                    "Unsupported durable record"
-                );
-                ensure!(tree.files.len() < MAX_FILES, "Too many records");
-                let bytes = read(&file.path(), MAX_FILE.min(MAX_TOTAL - total))?;
-                total += bytes.len();
-                tree.files.insert(path, bytes);
-            }
-        }
-        let mut records = tree.files.clone();
-        records.remove("settings.json");
-        if !records.is_empty() {
-            learnharness_061::validate(&records).map_err(anyhow::Error::msg)?;
-        }
-        Ok(tree)
-    }
-
-    fn id(&self) -> Result<String> {
-        let objects: Vec<_> = self
-            .files
-            .iter()
-            .map(|(name, bytes)| (name, sha256(bytes)))
-            .collect();
-        Ok(sha256(&serde_json::to_vec(&(&self.directories, objects))?))
-    }
-
-    fn copy_to(&self, target: &Path) -> Result<()> {
-        fs::create_dir(target)?;
-        private_dir(target)?;
-        for dir in &self.directories {
-            private_dir(&target.join(dir))?;
-        }
-        for (key, bytes) in &self.files {
-            atomic(&target.join(key), bytes)?;
-        }
-        sync_dir(target)?;
-        sync_dir(target.parent().context("Missing parent")?)?;
-        ensure!(
-            Self::read(target)? == *self,
-            "Copy failed readback verification"
-        );
-        Ok(())
-    }
-}
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -126,9 +46,7 @@ fn exchange(a: &Path, b: &Path, interrupt: bool) -> Result<()> {
 }
 
 fn tree_records(root: &Path) -> Result<Payload> {
-    let mut tree = Tree::read(&root.join("config/LearnHarness/data"))?;
-    tree.files.remove("settings.json");
-    Ok(tree.files)
+    Tree::records(&root.join("config/LearnHarness/data"))
 }
 
 fn peer_profile(store: &Store) -> Result<PathBuf> {
@@ -216,16 +134,7 @@ pub fn stage_received(store: &Store, expected: &str) -> Result<()> {
         current.files == previous,
         "Closed profile contains unpublished edits"
     );
-    current.files = store.payload(&store.manifest(expected)?)?;
-    learnharness_061::validate(&current.files).map_err(anyhow::Error::msg)?;
-    if let Some(bytes) = settings {
-        current.files.insert("settings.json".into(), bytes);
-    }
-    for path in current.files.keys() {
-        if let Some((dir, _)) = path.split_once('/') {
-            current.directories.insert(dir.into());
-        }
-    }
+    let current = Tree::from_records(store.payload(&store.manifest(expected)?)?, settings)?;
     let stage = root.join("received");
     current.copy_to(&stage)?;
     atomic(&root.join("pending-receipt"), expected.as_bytes())
