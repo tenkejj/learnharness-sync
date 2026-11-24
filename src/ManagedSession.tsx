@@ -19,7 +19,6 @@ export function ManagedSession() {
   const [staged, setStaged] = useState<
     { revision: string; files: number; bytes: number }[]
   >([]);
-  const [applyRevision, setApplyRevision] = useState("");
   const { busy, error, run } = useOperation();
   const idle = state === "saved" || state === "verified";
   useEffect(() => {
@@ -191,50 +190,17 @@ export function ManagedSession() {
             Existing local history is retained and merged; conflicts are refused
             for review.
           </p>
+          <p role="status">
+            Real LearnHarness apply is disabled pending packaged two-device
+            transaction qualification. Received data remains quarantined and
+            your managed profile is unchanged.
+          </p>
           {staged.map((revision) => (
             <div className="managed-staged" key={revision.revision}>
               <p>
                 {revision.files} files · {revision.bytes.toLocaleString()} bytes
                 · {revision.revision.slice(0, 12)}
               </p>
-              <label className="check-row">
-                <input
-                  type="checkbox"
-                  checked={applyRevision === revision.revision}
-                  onChange={(e) =>
-                    setApplyRevision(e.target.checked ? revision.revision : "")
-                  }
-                />
-                I authorize applying this received LearnHarness revision to my
-                isolated managed profile.
-              </label>
-              <button
-                disabled={
-                  busy ||
-                  !!statusError ||
-                  !idle ||
-                  applyRevision !== revision.revision
-                }
-                onClick={() =>
-                  void run(async () => {
-                    const result = await command<{
-                      state: string;
-                      application_verified: false;
-                    }>("managed_apply", {
-                      revision: revision.revision,
-                      confirmed: true,
-                    });
-                    setApplyRevision("");
-                    setState(
-                      result.state === "awaiting_readback"
-                        ? "awaiting-readback"
-                        : "recovery",
-                    );
-                  })
-                }
-              >
-                Apply received data
-              </button>
             </div>
           ))}
         </div>

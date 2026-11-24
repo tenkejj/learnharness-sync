@@ -6,6 +6,10 @@ use serde_json::Value;
 use std::{path::PathBuf, sync::Arc, time::Duration};
 use tauri::{Emitter, Manager};
 
+// Real LearnHarness apply remains fail-closed until the packaged two-peer
+// round trip and managed failure-injection acceptance suite are qualified.
+const MANAGED_APPLY_QUALIFIED: bool = false;
+
 #[derive(Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum Command {
@@ -110,6 +114,9 @@ async fn engine_request(
                 .map_err(|_| "Managed snapshot helper stopped unexpectedly.")?;
         }
         if op == "apply" {
+            if !MANAGED_APPLY_QUALIFIED {
+                return Err("Applying received LearnHarness data is disabled until packaged two-peer transaction qualification passes. The verified copy remains quarantined.".into());
+            }
             if args.get("confirmed") != Some(&Value::Bool(true)) {
                 return Err("Confirm applying this quarantined LearnHarness revision to the managed profile.".into());
             }
