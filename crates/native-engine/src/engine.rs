@@ -69,7 +69,7 @@ pub struct Engine {
     pub identity: Identity,
     pub endpoint: quinn::Endpoint,
     pub store: Arc<Mutex<Store>>,
-    installation: std::result::Result<(), &'static str>,
+    installation: std::result::Result<&'static str, &'static str>,
     runtime: Mutex<Runtime>,
     mdns: Mutex<Option<mdns_sd::ServiceDaemon>>,
     stopped: AtomicBool,
@@ -534,7 +534,7 @@ impl Engine {
             .map(|d| json!({"id":d.peer.id,"name":d.peer.name,"address":d.peer.address}))
             .collect();
         Ok(
-            json!({"mode":if ledger.initialized {"synthetic"}else{"monitor"},"state":if !ledger.conflicts.is_empty(){"Conflict preserved"}else if ledger.head.is_some(){"Verified isolated history"}else{"Ready to add a device"},"device":r.settings.name,"data_path":path,"detected":self.installation.is_ok(),"head":ledger.head,"sync_test":sync_test,"snapshots":snaps,"backups":backups,"events":ledger.events,"conflicts":ledger.conflicts,"automatic":ledger.initialized,"managed_exports":managed_exports,"integration":"LearnHarness 0.6.1 managed export and transactional apply; explicit consent and application readback are required","transport_installed":true,"transport":{"state":if peers.iter().any(|p|p["connected"]==true){"connected"}else{"listening"},"device_id":self.identity.id,"peers":peers,"message":r.discovery},"discovered":discovered,"pending":r.pending.values().collect::<Vec<_>>(),"pairing_open":r.pairing_until>now(),"listen_port":self.local_addr()?.port(),"diagnostics":r.errors,"transfer":{"verified_received_bytes":r.verified_received_bytes,"verified_received_objects":r.verified_received_objects},"limitations":[adapter::PRODUCTION_BLOCK,"LearnHarness export/apply is restricted to the verified 0.6.1 profile; unsupported records and conflicting edits are refused.","Incoming revisions remain quarantined until the user explicitly applies them. Application readback is required to complete synchronization.","Same-LAN IPv4 only. Internet traversal and relays are unsupported.","Closing LearnHarness Sync stops syncing. No background daemon is installed.","All committed objects are retained; storage is capped at 1 GiB."]}),
+            json!({"mode":if ledger.initialized {"synthetic"}else{"monitor"},"state":if !ledger.conflicts.is_empty(){"Conflict preserved"}else if ledger.head.is_some(){"Verified isolated history"}else{"Ready to add a device"},"device":r.settings.name,"data_path":path,"detected":self.installation.is_ok(),"head":ledger.head,"sync_test":sync_test,"snapshots":snaps,"backups":backups,"events":ledger.events,"conflicts":ledger.conflicts,"automatic":ledger.initialized,"managed_exports":managed_exports,"integration":"LearnHarness 0.6.1 and 0.7.0 managed export and transactional apply; explicit consent and application readback are required","transport_installed":true,"transport":{"state":if peers.iter().any(|p|p["connected"]==true){"connected"}else{"listening"},"device_id":self.identity.id,"peers":peers,"message":r.discovery},"discovered":discovered,"pending":r.pending.values().collect::<Vec<_>>(),"pairing_open":r.pairing_until>now(),"listen_port":self.local_addr()?.port(),"diagnostics":r.errors,"transfer":{"verified_received_bytes":r.verified_received_bytes,"verified_received_objects":r.verified_received_objects},"limitations":[adapter::PRODUCTION_BLOCK,"LearnHarness export/apply is restricted to verified 0.6.1 or 0.7.0 managed profiles; unsupported records, cross-version applies, and conflicting edits are refused.","Incoming revisions remain quarantined until the user explicitly applies them. Application readback is required to complete synchronization.","Same-LAN IPv4 only. Internet traversal and relays are unsupported.","Closing LearnHarness Sync stops syncing. No background daemon is installed.","All committed objects are retained; storage is capped at 1 GiB."]}),
         )
     }
     pub async fn request(self: &Arc<Self>, command: &str, args: Value) -> Result<Value> {
@@ -570,10 +570,9 @@ impl Engine {
                 }
             }
             "settings" => {
-                let installation = self
-                    .installation
-                    .err()
-                    .unwrap_or("LearnHarness 0.6.1 verified");
+                let installation = match self.installation {
+                    Ok(version) | Err(version) => version,
+                };
                 Ok(
                     json!({"version":2,"name":self.name(),"production_mutation":false,"installation":installation,"profile":self.disk(|s|Ok(s.root.to_string_lossy().to_string())).await?}),
                 )

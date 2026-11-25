@@ -84,6 +84,17 @@ if (
       if ((await request("/api/graph")).propositions.length) break;
       await new Promise((r) => setTimeout(r, 150));
     }
+    if (process.env.LEARNHARNESS_SYNC_PROFILE_FORMAT === "learnharness-0.7.0-disposable-v1") {
+      const created = await request("/api/graph/sources", "POST", {
+        action: "create-folder", name: "Disposable 0.7 folder", parentId: null,
+      });
+      const folder = created.organization.folders.find((row) => row.name === "Disposable 0.7 folder");
+      assert.ok(folder?.id);
+      const moved = await request("/api/graph/sources", "POST", {
+        action: "move", kind: "source", id, parentId: folder.id,
+      });
+      assert.equal(moved.organization.placements[id].folderId, folder.id);
+    }
   } else if (phase === "extend-transcript") {
     const { chats } = await request("/api/chats");
     assert.equal(chats.length, 1, "The disposable peer profile must contain the imported session only");
@@ -92,6 +103,13 @@ if (
   } else if (phase !== "configure")
     id = readFileSync("/profile/transcript-id", "utf8");
   if (phase !== "configure") {
+    if (process.env.LEARNHARNESS_SYNC_PROFILE_FORMAT === "learnharness-0.7.0-disposable-v1") {
+      const directory = await request("/api/graph/sources");
+      const folders = directory.organization.folders;
+      assert.equal(folders.length, 1);
+      assert.equal(folders[0].name, "Disposable 0.7 folder");
+      assert.equal(directory.organization.placements[id].folderId, folders[0].id);
+    }
     if (phase === "path-reference") {
       writeFileSync("/profile/triangle.txt", "A disposable attachment");
       const text = 'Read "/profile/triangle.txt"';

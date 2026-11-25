@@ -52,7 +52,7 @@ def find_descendant_command(process, marker):
             pass
 
 
-def exercise(package, image, weston_root, host_display=False):
+def exercise(package, image, weston_root, host_display=False, release="0.6.1"):
     repo = Path(__file__).resolve().parents[1]
     root = Path(tempfile.mkdtemp(prefix="managed-accept-", dir=repo/"build"))
     home, data = (root/p for p in ("home", "data"))
@@ -60,8 +60,9 @@ def exercise(package, image, weston_root, host_display=False):
     for folder in (home, data, *([] if host_display else [runtime])):
         folder.mkdir(mode=0o700)
     (home/"Applications").mkdir()
-    shutil.copy2(image, home/"Applications/LearnHarness-0.6.1-x86_64.AppImage")
-    (home/"Applications/LearnHarness-0.6.1-x86_64.AppImage").chmod(0o700)
+    installed = home/f"Applications/LearnHarness-{release}-x86_64.AppImage"
+    shutil.copy2(image, installed)
+    installed.chmod(0o700)
     env = {"HOME": str(home), "XDG_DATA_HOME": str(data), "XDG_RUNTIME_DIR": str(runtime),
            "PATH": "/usr/bin", "LANG": "C.UTF-8"}
     if host_display:
@@ -86,12 +87,13 @@ def exercise(package, image, weston_root, host_display=False):
     def launch():
         return subprocess.Popen([package, "--managed-launch"], env=env, stdout=subprocess.PIPE, text=True)
     slot = data/"io.github.tenkejj.learnharness-sync/managed/slot"
+    vault_name = "vault-070" if release == "0.7.0" else "vault"
     def vault(command):
         return subprocess.check_output(["unshare", "--user", "--map-auto", "--map-root-user", "--mount",
             "bwrap", "--unshare-pid", "--unshare-net", "--unshare-ipc", "--ro-bind", "/usr", "/usr", "--symlink", "usr/lib", "/lib64",
             "--symlink", "usr/lib", "/lib", "--proc", "/proc", "--dev", "/dev", "--bind", slot, "/slot",
             "setpriv", "--reuid=1", "--regid=1", "--clear-groups", "/usr/bin/bash", "-ec",
-            'cd /slot/vault; ' + command], env=env, text=True).strip()
+            f'cd /slot/{vault_name}; ' + command], env=env, text=True).strip()
     def saved():
         return vault('gen=$(cat current); [[ $(btrfs property get -ts "$gen" ro) == ro=true ]]; '
                      'test -d "$gen/config/LearnHarness"; echo "$gen"; '
@@ -117,7 +119,7 @@ def exercise(package, image, weston_root, host_display=False):
         refused = subprocess.run([package, "--managed-snapshot"], env=env, capture_output=True, text=True, timeout=30)
         assert refused.returncode != 0, "Snapshot must refuse while the LearnHarness writer is active"
         try:
-            os.listdir(slot/"vault")
+            os.listdir(slot/vault_name)
         except PermissionError as e:
             assert e.errno == errno.EACCES
         else:
@@ -158,7 +160,7 @@ def exercise(package, image, weston_root, host_display=False):
             captured = subprocess.run([package, "--managed-snapshot"], env=env, capture_output=True, text=True, timeout=30)
             assert captured.returncode == 0, captured.stderr
             snapshot = __import__("json").loads(captured.stdout)
-            assert snapshot["format"] == "learnharness-0.6.1-disposable-v1"
+            assert snapshot["format"] == f"learnharness-{release}-disposable-v1"
             assert isinstance(snapshot["digest"], str) and len(snapshot["digest"]) == 64
             assert snapshot["files"] > 0 and snapshot["bytes"] > 0
             assert snapshot["manifest"] == oracle["manifest"], "Packaged helper manifest differs from independent post-exit file hashes"
@@ -167,7 +169,11 @@ def exercise(package, image, weston_root, host_display=False):
             print(f"Subordinate-UID snapshot IPC passed: {snapshot['files']} files, {snapshot['bytes']} bytes, digest {snapshot['digest']}", flush=True)
             smoke = subprocess.run([package, "--smoke-test", "--smoke-managed-snapshot"], env=env,
                                    capture_output=True, text=True, timeout=120)
-            assert smoke.returncode == 0, smoke.stderr + smoke.stdout
+            if smoke.returncode != 0:
+                report_path = next((line.split("=", 1)[1] for line in smoke.stdout.splitlines()
+                                    if line.startswith("NATIVE_SMOKE_REPORT=")), None)
+                detail = Path(report_path).read_text() if report_path else "no smoke report"
+                raise AssertionError(f"Tauri smoke failed: {detail}; managed status: {request('status')}")
             report_line = next((line for line in smoke.stdout.splitlines()
                                 if line.startswith("NATIVE_SMOKE_REPORT=")), None)
             assert report_line, smoke.stdout
@@ -249,9 +255,10 @@ def exercise(package, image, weston_root, host_display=False):
         try:
             vault('exec 9<.; flock -n 9; '
                   'for dir in session.*; do btrfs property set -ts "$dir" ro false; '
-                  'btrfs subvolume delete "$dir" >/dev/null; done; '
-                  'rm -f -- current active apply.pending.json current.next interrupted.*; '
-                  'cd /slot; rmdir vault')
+                  'if ! btrfs subvolume delete "$dir" >/dev/null; then '
+                  'btrfs property set -ts "$dir" ro true; exit 1; fi; done; '
+                  'rm -f -- current active apply.pending.json current.next profile-format interrupted.*; '
+                  f'cd /slot; rmdir {vault_name}')
             shutil.rmtree(root)
         except subprocess.CalledProcessError:
             print(f"Disposable Btrfs test vault retained for administrator cleanup: {root}")
@@ -264,6 +271,8 @@ if __name__ == "__main__":
     parser.add_argument("--weston-root", type=Path)
     parser.add_argument("--host-display", action="store_true",
                         help="Use the current Wayland/X11 compositor instead of launching Weston")
+    parser.add_argument("--release", choices=("0.6.1", "0.7.0"), default="0.6.1")
     args = parser.parse_args()
     exercise(args.package.resolve(strict=True), args.upstream_image.resolve(strict=True),
-             args.weston_root.resolve(strict=True) if args.weston_root else None, args.host_display)
+             args.weston_root.resolve(strict=True) if args.weston_root else None,
+             args.host_display, args.release)

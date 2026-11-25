@@ -6,7 +6,7 @@
     let managedSnapshot = null;
     if (window.__CHECK_MANAGED_SNAPSHOT__) {
       managedSnapshot = await cmd("managed_snapshot");
-      if (managedSnapshot.format !== "learnharness-0.6.1-disposable-v1" || !/^[a-f0-9]{64}$/.test(managedSnapshot.digest) || managedSnapshot.files < 1 || managedSnapshot.bytes < 1 || !Array.isArray(managedSnapshot.manifest)) {
+      if (!["learnharness-0.6.1-disposable-v1", "learnharness-0.7.0-disposable-v1"].includes(managedSnapshot.format) || !/^[a-f0-9]{64}$/.test(managedSnapshot.digest) || managedSnapshot.files < 1 || managedSnapshot.bytes < 1 || !Array.isArray(managedSnapshot.manifest)) {
         throw Error("Non-empty managed subordinate-UID snapshot unavailable through Tauri command");
       }
     }
@@ -40,7 +40,7 @@
     if ((await cmd("status")).pairing_open || document.querySelector("dialog[open]")) throw Error("Closing discovery did not close new pairing requests");
     document.querySelector('button[aria-label="Settings"]').click(); await pause(200);
     if (!document.querySelector("dialog[open]")) throw Error("Settings dialog unavailable");
-    if (!document.body.textContent.includes("Synchronization is limited to the tested LearnHarness 0.6.1 managed profile.")) throw Error("Safety status missing");
+    if (!document.body.textContent.includes("Synchronization requires a verified LearnHarness managed profile.")) throw Error("Safety status missing");
     const installation = (await cmd("settings")).installation;
     for (let i = 0; i < 100 && !document.body.textContent.includes(installation); i++) await pause(50);
     if (!installation || !document.body.textContent.includes(installation)) throw Error("Installation status missing");

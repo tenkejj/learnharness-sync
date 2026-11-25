@@ -116,9 +116,10 @@ pub fn capture_for_export(
 }
 
 fn validate_snapshot_metadata(value: &serde_json::Value) -> Result<(), String> {
-    if value.get("format").and_then(serde_json::Value::as_str)
-        != Some("learnharness-0.6.1-disposable-v1")
-    {
+    if !matches!(
+        value.get("format").and_then(serde_json::Value::as_str),
+        Some("learnharness-0.6.1-disposable-v1" | "learnharness-0.7.0-disposable-v1")
+    ) {
         return Err("Managed helper returned an unsupported snapshot profile".into());
     }
     let valid_hash = |hash: &str| {
@@ -194,6 +195,7 @@ fn validate_snapshot_metadata(value: &serde_json::Value) -> Result<(), String> {
                     | "graph/chains.jsonl"
                     | "graph/coverage.jsonl"
                     | "graph/positions.json"
+                    | "graph/source-organization.json"
             )
         };
         if !supported || !valid_hash(digest) || !names.insert(path) {

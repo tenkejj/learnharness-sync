@@ -4,7 +4,9 @@
 //! establish exclusive writer control before reading or replacing a profile.
 use crate::storage::{atomic, private_dir, read, safe_path, sync_dir, MAX_METADATA};
 use anyhow::{ensure, Context, Result};
-use harness_sync_core::{learnharness_061, Payload, MAX_FILE, MAX_FILES, MAX_TOTAL};
+use harness_sync_core::{
+    learnharness_061, learnharness_070, Payload, MAX_FILE, MAX_FILES, MAX_TOTAL,
+};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeSet,
@@ -84,6 +86,14 @@ impl Tree {
     }
 
     pub fn snapshot_summary(root: &Path) -> Result<serde_json::Value> {
+        Self::snapshot_summary_for_format(root, learnharness_061::FORMAT)
+    }
+
+    pub fn snapshot_summary_for_format(root: &Path, format: &str) -> Result<serde_json::Value> {
+        ensure!(
+            matches!(format, learnharness_061::FORMAT | learnharness_070::FORMAT),
+            "Unsupported managed profile release"
+        );
         let tree = Self::read(root)?;
         let mut records = tree.files.clone();
         records.remove("settings.json");
@@ -112,7 +122,7 @@ impl Tree {
         }
         .id()?;
         Ok(serde_json::json!({
-            "format": harness_sync_core::learnharness_061::FORMAT,
+            "format": format,
             "digest": digest,
             "files": manifest.len(),
             "bytes": bytes,
@@ -124,9 +134,14 @@ impl Tree {
     /// helper serializes only validated durable records (settings/credentials
     /// are excluded) and the regular-user caller rechecks every hash.
     pub fn export_bundle(root: &Path) -> Result<serde_json::Value> {
+        Self::export_bundle_for_format(root, learnharness_061::FORMAT)
+    }
+
+    pub fn export_bundle_for_format(root: &Path, format: &str) -> Result<serde_json::Value> {
         use base64::Engine as _;
         let records = Self::records(root)?;
-        let manifest = crate::learnharness_export::ExportManifest::from_payload(&records)?;
+        let manifest =
+            crate::learnharness_export::ExportManifest::from_payload_for_format(&records, format)?;
         let encoded: Vec<_> = records
             .iter()
             .map(|(path, bytes)| {
@@ -468,6 +483,19 @@ struct ApplyTransaction {
     state: String,
 }
 
+fn vault_format(vault: &Path) -> Result<&'static str> {
+    let marker = vault.join("profile-format");
+    if !marker.try_exists()? {
+        return Ok(learnharness_061::FORMAT);
+    }
+    safe_path(&marker)?;
+    ensure!(
+        read(&marker, 128)? == format!("{}\n", learnharness_070::FORMAT).as_bytes(),
+        "Managed vault release marker is invalid"
+    );
+    Ok(learnharness_070::FORMAT)
+}
+
 /// Apply one verified export by constructing an immutable new Btrfs
 /// generation, preserving the prior generation as a separate read-only
 /// subvolume, then atomically swapping the `current` pointer. The durable
@@ -479,6 +507,10 @@ pub fn apply_incoming(
     incoming: &Payload,
 ) -> Result<serde_json::Value> {
     crate::learnharness_export::verify(manifest, incoming)?;
+    ensure!(
+        manifest.format == vault_format(vault)?,
+        "Incoming LearnHarness version differs from the managed vault"
+    );
     ensure!(
         fs::read(vault.join("active"))? == b"apply\n",
         "Managed writer exclusion marker is missing"
@@ -501,8 +533,11 @@ pub fn apply_incoming(
     } else {
         merge_records(&local_records, incoming)?
     };
-    let merged_revision =
-        crate::learnharness_export::ExportManifest::from_payload(&merged)?.revision;
+    let merged_revision = crate::learnharness_export::ExportManifest::from_payload_for_format(
+        &merged,
+        &manifest.format,
+    )?
+    .revision;
     ensure!(
         local_records != *incoming,
         "This LearnHarness revision is already present in the managed profile"
@@ -588,7 +623,11 @@ pub fn confirm_readback(vault: &Path, incoming_revision: &str) -> Result<serde_j
     );
     let current = read_generation(vault)?;
     let records = Tree::records(&vault.join(current).join("config/LearnHarness/data"))?;
-    let revision = crate::learnharness_export::ExportManifest::from_payload(&records)?.revision;
+    let revision = crate::learnharness_export::ExportManifest::from_payload_for_format(
+        &records,
+        vault_format(vault)?,
+    )?
+    .revision;
     ensure!(
         revision == transaction.merged_revision,
         "LearnHarness application readback differs from the prepared revision"
@@ -634,8 +673,11 @@ pub fn recover_transaction(vault: &Path) -> Result<serde_json::Value> {
             let current_records =
                 Tree::records(&vault.join(&current).join("config/LearnHarness/data"))?;
             let current_revision =
-                crate::learnharness_export::ExportManifest::from_payload(&current_records)?
-                    .revision;
+                crate::learnharness_export::ExportManifest::from_payload_for_format(
+                    &current_records,
+                    vault_format(vault)?,
+                )?
+                .revision;
             if current_revision == transaction.merged_revision {
                 transaction.state = "application_readback_verified_during_recovery".into();
                 outcome = "verified_clean_application_exit";

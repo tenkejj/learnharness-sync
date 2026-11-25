@@ -296,8 +296,7 @@ export function SettingsContent({
         {config && <p>{config.installation}</p>}
         <p>
           <ShieldCheck size={20} aria-hidden="true" />
-          Synchronization is limited to the tested LearnHarness 0.6.1 managed
-          profile.
+          Synchronization requires a verified LearnHarness managed profile.
         </p>
         <p className="secondary-copy">
           Manrope by The Manrope Project Authors · SIL Open Font License 1.1.

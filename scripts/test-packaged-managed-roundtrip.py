@@ -16,8 +16,13 @@ import time
 
 
 REPO = Path(__file__).resolve().parents[1]
-UPSTREAM = REPO / "build/qualification/real-sync/LearnHarness-0.6.1-x86_64.AppImage"
+RELEASE = sys.argv[2] if len(sys.argv) > 2 else "0.6.1"
+assert RELEASE in ("0.6.1", "0.7.0"), "Only pinned LearnHarness releases are qualified"
+UPSTREAM = REPO / ("build/qualification/learnharness-070/LearnHarness-0.7.0-x86_64.AppImage"
+                   if RELEASE == "0.7.0" else "build/qualification/real-sync/LearnHarness-0.6.1-x86_64.AppImage")
 APPIMAGE = Path(sys.argv[1]).resolve(strict=True)
+VAULT_NAME = "vault-070" if RELEASE == "0.7.0" else "vault"
+QUARANTINE_NAME = "learnharness-0.7.0" if RELEASE == "0.7.0" else "learnharness-0.6.1"
 
 
 def descendants(pid):
@@ -143,7 +148,7 @@ def mapped_vault(env, command):
             "--ro-bind", "/usr", "/usr", "--symlink", "usr/lib", "/lib64",
             "--symlink", "usr/lib", "/lib", "--proc", "/proc", "--dev", "/dev",
             "--bind", str(slot), "/slot", "/usr/bin/setpriv", "--reuid=1", "--regid=1",
-            "--clear-groups", "/usr/bin/bash", "-ec", "cd /slot/vault; " + command,
+            "--clear-groups", "/usr/bin/bash", "-ec", f"cd /slot/{VAULT_NAME}; " + command,
         ],
         env=env,
         text=True,
@@ -213,7 +218,7 @@ def read_bundle(peer):
 
 
 def read_quarantine(store, revision):
-    target = store / "quarantine/learnharness-0.6.1" / revision
+    target = store / "quarantine" / QUARANTINE_NAME / revision
     manifest = json.loads((target / "manifest.json").read_text())
     records = {}
     for row in manifest["files"]:
@@ -240,11 +245,20 @@ def validate_application_content(peer, expected_id, extra_text=None):
     chains = [json.loads(x) for x in records["graph/chains.jsonl"].splitlines() if x]
     assert len(nodes) == 3 and len(chains) == 2
     assert all(any(p["chatId"] == expected_id and any(m["id"] == p["messageId"] for m in chat["messages"]) for p in node["provenance"]) for node in nodes)
+    if RELEASE == "0.7.0":
+        organization = json.loads(records["graph/source-organization.json"])
+        assert organization["version"] == 1 and len(organization["folders"]) == 1
+        folder = organization["folders"][0]
+        assert folder["name"] == "Disposable 0.7 folder"
+        assert organization["placements"][expected_id]["folderId"] == folder["id"]
     return manifest, records, chat, nodes, chains
 
 
 def main():
-    assert UPSTREAM.is_file(), f"Verified LearnHarness 0.6.1 image missing: {UPSTREAM}"
+    assert UPSTREAM.is_file(), f"Verified LearnHarness {RELEASE} image missing: {UPSTREAM}"
+    expected_sha = ("772b5e04d380cbe8a72a75dbff269aeb6a47f4d4452711b1da8059a872067613"
+                    if RELEASE == "0.7.0" else "b8a033eb7421677893d96e4988b30153fdfe4fc6f0dc456f7947161bba041b98")
+    assert hashlib.sha256(UPSTREAM.read_bytes()).hexdigest() == expected_sha, "Upstream AppImage digest mismatch"
     assert os.environ.get("XDG_RUNTIME_DIR"), "A desktop runtime directory is required for real application readback"
     root = Path(tempfile.mkdtemp(prefix="packaged-managed-roundtrip-", dir=REPO / "build"))
     close_window = root / "close-window"
@@ -260,7 +274,7 @@ def main():
             for path in (home, data, store):
                 path.mkdir(mode=0o700)
             (home / "Applications").mkdir()
-            app = home / "Applications/LearnHarness-0.6.1-x86_64.AppImage"
+            app = home / f"Applications/LearnHarness-{RELEASE}-x86_64.AppImage"
             shutil.copy2(UPSTREAM, app)
             app.chmod(0o700)
             env = {
@@ -328,6 +342,7 @@ def main():
         revision = staged[0]["revision"]
         staged_manifest, staged_payload = read_quarantine(b_store, revision)
         assert staged_manifest["revision"] == revision
+        assert staged_manifest["format"] == f"learnharness-{RELEASE}-disposable-v1"
         assert f"chats/{chat_id}.json" in staged_payload
         print(f"QUIC delivered and verified {staged[0]['files']} content records ({staged[0]['bytes']} bytes) into B quarantine.", flush=True)
 
@@ -466,10 +481,10 @@ def main():
                     'for g in session.* backups/backup-*; do '
                     '[[ -d "$g" && ! -L "$g" ]] || continue; '
                     '[[ $(btrfs property get -ts "$g" ro) == ro=true ]] && btrfs property set -ts "$g" ro false; '
-                    'btrfs subvolume delete "$g"; done; '
+                    'if ! btrfs subvolume delete "$g"; then btrfs property set -ts "$g" ro true; exit 1; fi; done; '
                     'for f in transactions/apply-*.json; do [[ -f "$f" ]] && rm -- "$f"; done; '
-                    'rm -f -- active current current.next apply.pending.json; '
-                    'rmdir transactions backups 2>/dev/null || true; rmdir vault'
+                    'rm -f -- active current current.next apply.pending.json profile-format; '
+                    f'rmdir transactions backups 2>/dev/null || true; rmdir {VAULT_NAME}'
                 )
             except (OSError, subprocess.CalledProcessError) as exc:
                 cleaned = False

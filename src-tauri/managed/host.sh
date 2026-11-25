@@ -26,6 +26,14 @@ if [[ $op == qa-populate || $op == qa-extend ]]; then
            --ro-bind "$qa_root/build/managed-close-window" /close-window
            --ro-bind "$qa_root/node_modules" /node_modules)
 fi
+release=061
+image_070=$HOME/Applications/LearnHarness-0.7.0-x86_64.AppImage
+if [[ -e $image_070 || -L $image_070 ]]; then
+  [[ -f $image_070 && ! -L $image_070 && -x $image_070 ]] || fail 'The LearnHarness 0.7.0 AppImage is unsafe.'
+  [[ $(stat -c %s "$image_070") == 196652282 ]] || fail 'LearnHarness 0.7.0 AppImage size does not match the pinned release.'
+  echo '772b5e04d380cbe8a72a75dbff269aeb6a47f4d4452711b1da8059a872067613  '"$image_070" | sha256sum --status -c - || fail 'LearnHarness 0.7.0 AppImage digest does not match the pinned release.'
+  release=070
+fi
 if [[ ! -e $base/slot && $op == status ]]; then echo new; exit; fi
 mkdir -p -m 700 -- "$base"
 [[ ! -L $base && $(stat -c '%u:%a' "$base") == "$(id -u):700" ]] || fail 'Managed storage is not private.'
@@ -36,8 +44,12 @@ mkdir -m 733 -- "$base/slot" 2>/dev/null || [[ -d $base/slot ]]
 [[ ! -L $base/slot && $(stat -c '%u:%a' "$base/slot") == "$(id -u):733" ]] || fail 'Invalid managed storage entrance.'
 displaynum=0
 if [[ $op == launch || $op == qa-populate || $op == qa-extend ]]; then
-  source=$HOME/Applications/LearnHarness-0.6.1-x86_64.AppImage
-  [[ -f $source && ! -L $source && -x $source ]] || fail 'Install the official LearnHarness 0.6.1 AppImage first.'
+  if [[ $release == 070 ]]; then
+    source=$image_070
+  else
+    source=$HOME/Applications/LearnHarness-0.6.1-x86_64.AppImage
+  fi
+  [[ -f $source && ! -L $source && -x $source ]] || fail "Install the official LearnHarness $release AppImage first."
   tmp=$(mktemp -d)
   server=''
   cleanup() {
@@ -47,7 +59,11 @@ if [[ $op == launch || $op == qa-populate || $op == qa-extend ]]; then
   trap cleanup EXIT
   cd "$tmp"
   cp -- "$source" appimage
-  echo 'b8a033eb7421677893d96e4988b30153fdfe4fc6f0dc456f7947161bba041b98  appimage' | sha256sum --status -c - || fail 'LearnHarness executable digest does not match 0.6.1.'
+  if [[ $release == 070 ]]; then
+    echo '772b5e04d380cbe8a72a75dbff269aeb6a47f4d4452711b1da8059a872067613  appimage' | sha256sum --status -c - || fail 'LearnHarness executable digest does not match 0.7.0.'
+  else
+    echo 'b8a033eb7421677893d96e4988b30153fdfe4fc6f0dc456f7947161bba041b98  appimage' | sha256sum --status -c - || fail 'LearnHarness executable digest does not match 0.6.1.'
+  fi
   chmod 700 appimage
   ./appimage --appimage-extract >/dev/null
   chmod -R a+rX squashfs-root
@@ -91,4 +107,4 @@ unshare --user --map-auto --map-root-user --mount --propagation private \
   --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
   --dir /etc --ro-bind /etc/fonts /etc/fonts --proc /proc --dev /dev --tmpfs /tmp \
   --bind "$base/slot" /slot "${mounts[@]}" --setenv PATH /usr/bin --setenv LANG C.UTF-8 "${acceptance_env[@]}" \
-  setpriv --reuid=1 --regid=1 --clear-groups bash -c "$worker" worker "$op" "$displaynum" "${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-}" "" "$helper" "$qa_root"
+  setpriv --reuid=1 --regid=1 --clear-groups bash -c "$worker" worker "$op" "$displaynum" "${LEARNHARNESS_SYNC_MANAGED_QA_LOG:-}" "" "$helper" "$qa_root" "$release"

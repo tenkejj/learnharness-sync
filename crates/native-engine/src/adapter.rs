@@ -2,7 +2,7 @@
 //! The separate backup inspector only accepts an immutable Btrfs source.
 use anyhow::{bail, Result};
 use harness_sync_core::Payload;
-pub const PRODUCTION_BLOCK: &str = "The legacy direct-profile commands remain disabled; use the explicitly consented LearnHarness 0.6.1 managed-profile workflow.";
+pub const PRODUCTION_BLOCK: &str = "The legacy direct-profile commands remain disabled; use the explicitly consented managed-profile workflow.";
 pub fn production_operation() -> Result<()> {
     bail!(PRODUCTION_BLOCK)
 }
@@ -22,16 +22,40 @@ pub fn fixture(text: &str) -> Result<Payload> {
 
 /// Inspect only the installed executable. A match describes the bytes inspected;
 /// any future launcher must pin and verify its own private copy before execution.
-pub fn detect_installation() -> std::result::Result<(), &'static str> {
+pub fn detect_installation() -> std::result::Result<&'static str, &'static str> {
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     {
         let Some(home) = std::env::var_os("HOME") else {
             return Err("Installation location unavailable");
         };
-        let candidate =
-            std::path::PathBuf::from(home).join("Applications/LearnHarness-0.6.1-x86_64.AppImage");
-        match pinned_image(&candidate) {
-            Ok(true) => Ok(()),
+        let applications = std::path::PathBuf::from(home).join("Applications");
+        let newer = applications.join("LearnHarness-0.7.0-x86_64.AppImage");
+        if newer.exists() || newer.is_symlink() {
+            return match pinned_image(
+                &newer,
+                196_652_282,
+                &[
+                    0x77, 0x2b, 0x5e, 0x04, 0xd3, 0x80, 0xcb, 0xe8, 0xa7, 0x2a, 0x75, 0xdb, 0xff,
+                    0x26, 0x9a, 0xeb, 0x6a, 0x47, 0xf4, 0xd4, 0x45, 0x27, 0x11, 0xb1, 0xda, 0x80,
+                    0x59, 0xa8, 0x72, 0x06, 0x76, 0x13,
+                ],
+            ) {
+                Ok(true) => Ok("LearnHarness 0.7.0 verified"),
+                Ok(false) => Err("LearnHarness AppImage differs from the pinned 0.7.0 release"),
+                Err(_) => Err("LearnHarness 0.7.0 AppImage could not be verified"),
+            };
+        }
+        let candidate = applications.join("LearnHarness-0.6.1-x86_64.AppImage");
+        match pinned_image(
+            &candidate,
+            196_784_591,
+            &[
+                0xb8, 0xa0, 0x33, 0xeb, 0x74, 0x21, 0x67, 0x78, 0x93, 0xd9, 0x6e, 0x49, 0x88, 0xb3,
+                0x01, 0x53, 0xfd, 0xfe, 0x4f, 0xc6, 0xf0, 0xdc, 0x45, 0x6f, 0x79, 0x47, 0x16, 0x1b,
+                0xba, 0x04, 0x1b, 0x98,
+            ],
+        ) {
+            Ok(true) => Ok("LearnHarness 0.6.1 verified"),
             Ok(false) => Err("LearnHarness AppImage differs from the tested 0.6.1 release"),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                 Err("LearnHarness 0.6.1 AppImage not found in ~/Applications")
@@ -44,21 +68,24 @@ pub fn detect_installation() -> std::result::Result<(), &'static str> {
 }
 
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-fn pinned_image(path: &std::path::Path) -> std::io::Result<bool> {
+fn pinned_image(
+    path: &std::path::Path,
+    size: u64,
+    expected_digest: &[u8; 32],
+) -> std::io::Result<bool> {
     use std::{
         io::Read,
         os::unix::fs::{OpenOptionsExt, PermissionsExt},
     };
-    const SIZE: u64 = 196_784_591;
     let file = std::fs::OpenOptions::new()
         .read(true)
         .custom_flags(libc::O_NONBLOCK | libc::O_NOFOLLOW)
         .open(path)?;
     let meta = file.metadata()?;
-    if !meta.is_file() || meta.len() != SIZE || meta.permissions().mode() & 0o111 == 0 {
+    if !meta.is_file() || meta.len() != size || meta.permissions().mode() & 0o111 == 0 {
         return Ok(false);
     }
-    let mut input = file.take(SIZE + 1);
+    let mut input = file.take(size + 1);
     let mut digest = ring::digest::Context::new(&ring::digest::SHA256);
     let mut buffer = [0; 32768];
     let mut count = 0;
@@ -70,11 +97,5 @@ fn pinned_image(path: &std::path::Path) -> std::io::Result<bool> {
         count += n as u64;
         digest.update(&buffer[..n]);
     }
-    Ok(count == SIZE
-        && digest.finish().as_ref()
-            == [
-                0xb8, 0xa0, 0x33, 0xeb, 0x74, 0x21, 0x67, 0x78, 0x93, 0xd9, 0x6e, 0x49, 0x88, 0xb3,
-                0x01, 0x53, 0xfd, 0xfe, 0x4f, 0xc6, 0xf0, 0xdc, 0x45, 0x6f, 0x79, 0x47, 0x16, 0x1b,
-                0xba, 0x04, 0x1b, 0x98,
-            ])
+    Ok(count == size && digest.finish().as_ref() == expected_digest)
 }

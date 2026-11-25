@@ -507,6 +507,41 @@ mod tests {
     }
 
     #[test]
+    fn releases_have_distinct_addresses_and_cross_version_apply_is_refused() {
+        let payload = payload();
+        let old = ExportManifest::from_payload(&payload).unwrap();
+        let newer =
+            ExportManifest::from_payload_for_format(&payload, learnharness_070::FORMAT).unwrap();
+        assert_ne!(old.revision, newer.revision);
+        let temp = TempDir::new().unwrap();
+        stage(temp.path(), &old, &payload).unwrap();
+        stage(temp.path(), &newer, &payload).unwrap();
+        assert_eq!(list(temp.path()).unwrap().len(), 2);
+        assert_eq!(
+            load(temp.path(), &old.revision).unwrap().0.format,
+            learnharness_061::FORMAT
+        );
+        assert_eq!(
+            load(temp.path(), &newer.revision).unwrap().0.format,
+            learnharness_070::FORMAT
+        );
+
+        let vault = temp.path().join("vault");
+        fs::create_dir(&vault).unwrap();
+        fs::write(
+            vault.join("profile-format"),
+            format!("{}\n", learnharness_070::FORMAT),
+        )
+        .unwrap();
+        fs::write(vault.join("active"), b"apply\n").unwrap();
+        let refused = crate::managed_profile::apply_incoming(&vault, &old, &payload).unwrap_err();
+        assert!(refused
+            .to_string()
+            .contains("differs from the managed vault"));
+        assert!(!vault.join("backups").exists());
+    }
+
+    #[test]
     fn malformed_or_tampered_content_is_never_staged() {
         let payload = payload();
         let manifest = ExportManifest::from_payload(&payload).unwrap();

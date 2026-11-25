@@ -212,7 +212,7 @@ test("three destinations, large local typography, honest first launch at three s
   await pageA.setViewportSize({ width: 1180, height: 800 });
   assert.equal(
     await pageA
-      .getByText("Connect a managed LearnHarness 0.6.1 profile in Settings.", {
+      .getByText("Connect a managed LearnHarness profile in Settings.", {
         exact: true,
       })
       .isVisible(),

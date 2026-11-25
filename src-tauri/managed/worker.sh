@@ -4,14 +4,31 @@ umask 077
 [[ $(id -u) == 1 ]]
 op=$1 number=$2 qa_log=${3:-}
 qa_root=${6:-}
-if [[ $op == status && ! -e /slot/vault ]]; then echo new; exit; fi
-mkdir -m 700 /slot/vault 2>/dev/null || [[ -d /slot/vault ]]
-cd /slot/vault
-[[ ! -L /slot/vault && $(stat -c '%u:%a' .) == 1:700 ]]
+release=${7:-}
+case "$release" in
+  061) vault=/slot/vault; profile_format=learnharness-0.6.1-disposable-v1 ;;
+  070) vault=/slot/vault-070; profile_format=learnharness-0.7.0-disposable-v1 ;;
+  *) echo 'Unsupported managed LearnHarness release.' >&2; exit 64 ;;
+esac
+if [[ $op == status && ! -e $vault ]]; then echo new; exit; fi
+mkdir -m 700 "$vault" 2>/dev/null || [[ -d $vault ]]
+cd "$vault"
+[[ ! -L $vault && $(stat -c '%u:%a' .) == 1:700 ]]
 exec 9<.
 if ! flock -n 9; then
   if [[ $op == status ]]; then echo active; exit; fi
   echo 'Close the managed LearnHarness window before continuing.' >&2; exit 75
+fi
+if [[ $release == 070 ]]; then
+  if [[ ! -e profile-format ]]; then
+    # The subordinate UID binds this vault to 0.7.0 while holding writer custody.
+    [[ ! -e current && ! -e active && ! -e apply.pending.json ]] || { echo 'Unversioned 0.7.0 vault refused.' >&2; exit 76; }
+    printf '%s\n' "$profile_format" > profile-format
+    sync -f .
+  fi
+  [[ ! -L profile-format && $(cat profile-format) == "$profile_format" ]] || { echo 'Managed vault release mismatch.' >&2; exit 76; }
+else
+  [[ ! -e profile-format ]] || { echo 'Legacy managed vault release mismatch.' >&2; exit 76; }
 fi
 current=''
 if [[ -e current ]]; then
@@ -43,7 +60,7 @@ if [[ $op == recover ]]; then
     --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
     --proc /proc --dev /dev \
     --ro-bind /helper /helper --bind "$PWD" /vault --chdir /vault \
-    --setenv PATH /usr/bin --setenv LANG C.UTF-8 /helper --managed-bridge-stdio
+    --setenv PATH /usr/bin --setenv LANG C.UTF-8 --setenv LEARNHARNESS_SYNC_PROFILE_FORMAT "$profile_format" /helper --managed-bridge-stdio
   exit
 fi
 if [[ $op == bridge || $op == bridge-delay ]]; then
@@ -61,7 +78,7 @@ if [[ $op == bridge || $op == bridge-delay ]]; then
     --ro-bind /helper /helper \
     --dir /capture --ro-bind "$PWD/active" /capture/active \
     --ro-bind "$PWD/$current" /capture/generation --chdir /capture \
-    --setenv PATH /usr/bin --setenv LANG C.UTF-8 /helper --managed-bridge-stdio "${helper_args[@]}"
+    --setenv PATH /usr/bin --setenv LANG C.UTF-8 --setenv LEARNHARNESS_SYNC_PROFILE_FORMAT "$profile_format" /helper --managed-bridge-stdio "${helper_args[@]}"
   rm -- active
   sync -f .
   exit
@@ -85,7 +102,7 @@ if [[ $op == apply || $op == confirm ]]; then
     --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
     --proc /proc --dev /dev \
     --ro-bind /helper /helper --bind "$PWD" /vault --chdir /vault \
-    --setenv PATH /usr/bin --setenv LANG C.UTF-8 "${helper_acceptance_env[@]}" /helper --managed-bridge-stdio; then
+    --setenv PATH /usr/bin --setenv LANG C.UTF-8 --setenv LEARNHARNESS_SYNC_PROFILE_FORMAT "$profile_format" "${helper_acceptance_env[@]}" /helper --managed-bridge-stdio; then
     rm -- active
     sync -f .
   else
@@ -130,7 +147,7 @@ run_app() {
   --setenv PATH /usr/bin --setenv LANG C.UTF-8 --setenv XAUTHORITY /auth --setenv DISPLAY ":$number" \
   --setenv XDG_RUNTIME_DIR /tmp/runtime --setenv XDG_CONFIG_HOME /profile/config \
   --setenv XDG_DATA_HOME /profile/data --setenv XDG_CACHE_HOME /profile/cache \
-  --setenv XDG_STATE_HOME /profile/state bash -ec '
+  --setenv XDG_STATE_HOME /profile/state --setenv LEARNHARNESS_SYNC_PROFILE_FORMAT "$profile_format" bash -ec '
     mkdir -m 700 /tmp/runtime
     echo localhost >/etc/hostname
     echo "learner:x:1:1:Managed:/profile:/bin/sh" >/etc/passwd

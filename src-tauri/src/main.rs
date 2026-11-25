@@ -321,7 +321,10 @@ fn main() {
                     let generation = vault.join("generation");
                     anyhow::ensure!(generation.is_dir(), "Managed generation is unavailable");
                     let path = generation.join("config/LearnHarness/data");
-                    harness_sync_native::managed_profile::Tree::snapshot_summary(&path)
+                    let format = std::env::var("LEARNHARNESS_SYNC_PROFILE_FORMAT")?;
+                    harness_sync_native::managed_profile::Tree::snapshot_summary_for_format(
+                        &path, &format,
+                    )
                 }
                 harness_sync_native::managed_bridge::Operation::Capture { consent: true } => {
                     let vault = std::path::Path::new("/capture");
@@ -331,8 +334,10 @@ fn main() {
                     );
                     let generation = vault.join("generation");
                     anyhow::ensure!(generation.is_dir(), "Managed generation is unavailable");
-                    harness_sync_native::managed_profile::Tree::export_bundle(
+                    let format = std::env::var("LEARNHARNESS_SYNC_PROFILE_FORMAT")?;
+                    harness_sync_native::managed_profile::Tree::export_bundle_for_format(
                         &generation.join("config/LearnHarness/data"),
+                        &format,
                     )
                 }
                 harness_sync_native::managed_bridge::Operation::PrepareApply {

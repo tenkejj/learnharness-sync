@@ -1,6 +1,6 @@
 # Managed LearnHarness qualification on Linux
 
-The native integration suite runs the upstream Linux x86_64 LearnHarness 0.6.1 executable. The desktop identifies the executable, provides a subordinate-UID offline managed launcher, and supports consented transfer, quarantine, backed-up Apply and application readback for the verified profile contract. It does not open the ordinary LearnHarness profile and provides no live-profile migration button. Tests create every profile they open. The current packaged A→B→A and recovery evidence is in [PRODUCTION_SYNC_ACCEPTANCE.md](PRODUCTION_SYNC_ACCEPTANCE.md).
+The native integration suite runs the upstream Linux x86_64 LearnHarness 0.6.1 and 0.7.0 executables. The desktop identifies pinned executables, provides separate subordinate-UID offline managed vaults, and supports consented transfer, quarantine, backed-up Apply and application readback for the verified profile contract. It does not open the ordinary LearnHarness profile and provides no live-profile migration button. Tests create every profile they open. The current packaged A→B→A and recovery evidence is in [0.6.1 acceptance](PRODUCTION_SYNC_ACCEPTANCE.md) and [0.7.0 compatibility](evidence/learnharness-070-compatibility-2026-11-25.md).
 
 ## Reproduce
 

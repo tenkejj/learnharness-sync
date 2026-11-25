@@ -213,8 +213,8 @@ function App() {
           <div>
             <strong>
               {data?.detected
-                ? "LearnHarness 0.6.1 detected. Sync uses an isolated managed profile."
-                : "Connect a managed LearnHarness 0.6.1 profile in Settings."}
+                ? "LearnHarness detected. Sync uses an isolated managed profile."
+                : "Connect a managed LearnHarness profile in Settings."}
             </strong>
             <span>
               Only supported managed-profile data is exchanged. Keep both apps

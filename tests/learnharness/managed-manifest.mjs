@@ -5,7 +5,7 @@ import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const profile = process.argv[2];
-assert.ok(profile?.startsWith("/slot/vault/session."));
+assert.ok(/^\/slot\/vault(?:-070)?\/session\.[a-f0-9-]{36}$/.test(profile));
 const data = join(profile, "config/LearnHarness/data");
 const chatId = readFileSync(join(profile, "transcript-id"), "utf8").trim();
 const expected = JSON.parse(readFileSync(join(profile, "expected-transcript.json"), "utf8"));
@@ -18,6 +18,14 @@ assert.ok(chat.messages.length >= 4);
 assert.ok(chat.messages.some((message) => message.content === "What is a triangle?"));
 assert.ok(chat.messages.some((message) => message.content === "Czy ma trzy boki?"));
 assert.ok(chat.messages.some((message) => JSON.stringify(message.content).includes("A triangle has three sides.")));
+const organizationPath = join(data, "graph/source-organization.json");
+if (profile.includes("vault-070")) {
+  const organization = JSON.parse(readFileSync(organizationPath, "utf8"));
+  assert.equal(organization.version, 1);
+  assert.equal(organization.folders.length, 1);
+  assert.equal(organization.folders[0].name, "Disposable 0.7 folder");
+  assert.equal(organization.placements[chatId].folderId, organization.folders[0].id);
+}
 
 const jsonl = (name) =>
   readFileSync(join(data, "graph", name), "utf8")
@@ -52,6 +60,7 @@ for (const dir of readdirSync(data, { withFileTypes: true })) {
     const path = `${dir.name}/${entry.name}`;
     assert.ok(path === chatPath || (dir.name === "graph" && [
       "format.json", "nodes.jsonl", "chains.jsonl", "coverage.jsonl", "positions.json",
+      ...(profile.includes("vault-070") ? ["source-organization.json"] : []),
     ].includes(entry.name)));
     const full = join(data, path);
     assert.ok(!lstatSync(full).isSymbolicLink());

@@ -6,13 +6,13 @@ Unofficial, local-first synchronization companion for LearnHarness.
 
 LearnHarness Sync is an independent, unofficial companion application for LearnHarness. It is not affiliated with or endorsed by the LearnHarness developers.
 
-**Experimental Linux x86_64 desktop.** For the pinned LearnHarness 0.6.1 AppImage, LearnHarness Sync supports explicitly consented transfers between isolated managed profiles. Incoming content stays quarantined until the user applies it; completion requires reopening LearnHarness and verifying application readback. No public binary is offered while physical-device acceptance and dependency redistribution reviews remain open. [Release status](https://github.com/tenkejj/learnharness-sync/releases) · [Upstream project](https://github.com/amosblomqvist/learnharness)
+**Experimental Linux x86_64 desktop.** For the pinned LearnHarness 0.6.1 and 0.7.0 AppImages, LearnHarness Sync supports explicitly consented transfers of a narrow text-and-graph subset between isolated managed profiles. Incoming content stays quarantined until the user applies it; completion requires reopening LearnHarness and verifying application readback. No public binary is offered while physical real-data acceptance and dependency redistribution reviews remain open. [Release status](https://github.com/tenkejj/learnharness-sync/releases) · [Upstream project](https://github.com/amosblomqvist/learnharness)
 
 ![Home in the packaged Linux application, captured with a disposable profile](docs/evidence/ux/packaged-linux.png)
 
 ## Build the Linux candidate
 
-No public binary is offered while the production writer-exclusion and dependency-redistribution gates remain open. Build the three private qualification installers from this checkout. From a directory containing all three installers and their matching SHA256SUMS file, run these commands on each computer.
+No public binary is offered while physical real-data acceptance and dependency redistribution gates remain open. Build the three private qualification installers from this checkout. From a directory containing all three installers and their matching SHA256SUMS file, run these commands on each computer.
 
 ```sh
 sha256sum -c SHA256SUMS
@@ -34,22 +34,22 @@ Each installation creates its own Ed25519 identity. Local discovery helps find p
 
 ## Synchronize managed LearnHarness profiles
 
-1. Install the exact LearnHarness 0.6.1 x86_64 AppImage at `~/Applications/LearnHarness-0.6.1-x86_64.AppImage` on both computers and pair the two LearnHarness Sync installations.
+1. Install the exact LearnHarness 0.7.0 x86_64 AppImage at `~/Applications/LearnHarness-0.7.0-x86_64.AppImage` on both computers (or use the separately supported 0.6.1 AppImage at its corresponding path) and pair the two LearnHarness Sync installations.
 2. In Settings, open **Managed LearnHarness**. Create or use content in this separate offline profile, then close LearnHarness cleanly. Your ordinary LearnHarness profile is not opened or changed.
 3. Select the paired device, check the authorization box, and choose **Send verified copy**. A verified transfer means the receiver has content in quarantine; it does not mean its application profile changed.
 4. On the receiver, check the revision-specific authorization box and choose **Apply verified revision**. LearnHarness Sync makes an independent backup, applies inside the managed vault, and asks you to reopen and cleanly close LearnHarness to confirm readback.
 5. Repeat in the opposite direction for new content from the second managed profile.
 
-Only the verified 0.6.1 profile contract is accepted. Unsupported files, records or conflicting edits stop the operation. See [the packaged A→B→A and recovery evidence](docs/PRODUCTION_SYNC_ACCEPTANCE.md).
+Only the verified text-and-graph profile contract is accepted. The 0.6.1 and 0.7.0 managed vaults are separate; cross-version Apply is refused. Unsupported files, records or conflicting edits stop the operation. See [0.6.1 evidence](docs/PRODUCTION_SYNC_ACCEPTANCE.md) and [0.7.0 evidence](docs/evidence/learnharness-070-compatibility-2026-11-25.md).
 
 ## LearnHarness compatibility
 
-At startup the desktop checks the executable at `~/Applications/LearnHarness-0.6.1-x86_64.AppImage` against the exact size and digest of the upstream release. Home and Settings report the result. The real-data workflow only runs against this pinned executable inside its isolated managed profile. [Pinned upstream release](https://github.com/amosblomqvist/learnharness/releases/tag/v0.6.1)
+At startup the desktop checks the AppImage at `~/Applications/LearnHarness-0.7.0-x86_64.AppImage` or the corresponding 0.6.1 path against the exact size and digest of its upstream release. If both are installed, it selects 0.7.0. Home and Settings report detection. The real-data workflow runs only against a pinned executable inside its isolated, version-specific managed profile. [0.7.0 release](https://github.com/amosblomqvist/learnharness/releases/tag/v0.7.0) · [0.6.1 release](https://github.com/amosblomqvist/learnharness/releases/tag/v0.6.1)
 
 | | Verified scope |
 |---|---|
 | Installed desktop | Pinned executable detection, isolated managed sessions, consented real-data export, quarantine, backed-up Apply and application readback, plus LAN pairing and synthetic test revisions |
-| Verified managed contract | Version 2 teach/practice sessions, Unicode titles, plain-text user and assistant turns with the tested keyless provider, turn metadata, graph propositions, single- and multi-premise chains, message provenance, coverage and saved layout |
+| Verified managed contract | Version 2 teach/practice sessions, Unicode titles, plain-text user and assistant turns with the tested keyless `custom:qa-model` provider, turn metadata, graph propositions, single- and multi-premise chains, message provenance, coverage and saved layout. On 0.7.0, chat folders and placements are also verified. |
 | Excluded from the wire | Device settings, credentials, Electron state, caches and logs. Unknown durable records, jobs, plugins and attachments cause refusal. Text that users put in a message is still message content. |
 | Unqualified | Unmanaged writable profiles, arbitrary models and tools, imported notes, historical graph compaction, cold power loss and two-physical-laptop acceptance |
 
