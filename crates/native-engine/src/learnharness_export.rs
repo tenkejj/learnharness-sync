@@ -3,7 +3,8 @@
 //! LearnHarness profile or the synthetic reconciliation ledger.
 use anyhow::{ensure, Context, Result};
 use harness_sync_core::{
-    learnharness_061, sha256, Payload, MAX_FILE, MAX_FILES, MAX_HISTORY, MAX_TOTAL,
+    learnharness_061, learnharness_070, sha256, Payload, MAX_FILE, MAX_FILES, MAX_HISTORY,
+    MAX_TOTAL,
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeSet, fs, path::Path};
@@ -34,6 +35,15 @@ pub struct QuarantinedRevision {
     pub revision: String,
     pub files: usize,
     pub bytes: u64,
+}
+
+fn quarantine_directory(root: &Path, format: &str) -> Result<std::path::PathBuf> {
+    let name = match format {
+        learnharness_061::FORMAT => "learnharness-0.6.1",
+        learnharness_070::FORMAT => "learnharness-0.7.0",
+        _ => anyhow::bail!("Unsupported LearnHarness schema"),
+    };
+    Ok(root.join("quarantine").join(name))
 }
 
 pub fn bundle_value(manifest: &ExportManifest, payload: &Payload) -> Result<serde_json::Value> {
@@ -105,8 +115,13 @@ pub fn parse_bundle(value: &serde_json::Value) -> Result<(ExportManifest, Payloa
 
 pub fn load(root: &Path, revision: &str) -> Result<(ExportManifest, Payload)> {
     ensure!(valid_hash(revision), "Invalid quarantined revision id");
-    let quarantine = root.join("quarantine/learnharness-0.6.1");
-    let target = quarantine.join(revision);
+    let legacy = root.join("quarantine/learnharness-0.6.1").join(revision);
+    let newer = root.join("quarantine/learnharness-0.7.0").join(revision);
+    ensure!(
+        !(legacy.try_exists()? && newer.try_exists()?),
+        "Ambiguous quarantined revision across LearnHarness versions"
+    );
+    let target = if newer.try_exists()? { newer } else { legacy };
     crate::storage::safe_path(&target)?;
     let stored: ExportManifest = serde_json::from_slice(&crate::storage::read(
         &target.join("manifest.json"),
@@ -115,6 +130,10 @@ pub fn load(root: &Path, revision: &str) -> Result<(ExportManifest, Payload)> {
     ensure!(
         stored.revision == revision,
         "Quarantined manifest does not match its address"
+    );
+    ensure!(
+        target.starts_with(quarantine_directory(root, &stored.format)?),
+        "Quarantined LearnHarness version does not match its manifest"
     );
     let expected_directories: BTreeSet<_> = stored
         .files
@@ -157,25 +176,27 @@ pub fn load(root: &Path, revision: &str) -> Result<(ExportManifest, Payload)> {
 }
 
 pub fn list(root: &Path) -> Result<Vec<QuarantinedRevision>> {
-    let quarantine = root.join("quarantine/learnharness-0.6.1");
-    if !quarantine.exists() {
-        return Ok(Vec::new());
-    }
     let mut items = Vec::new();
-    for entry in fs::read_dir(&quarantine)? {
-        let entry = entry?;
-        let meta = fs::symlink_metadata(entry.path())?;
-        ensure!(
-            meta.is_dir() && !meta.file_type().is_symlink(),
-            "Unsafe quarantine entry"
-        );
-        let revision = entry.file_name().to_string_lossy().into_owned();
-        let (manifest, _) = load(root, &revision)?;
-        items.push(QuarantinedRevision {
-            revision,
-            files: manifest.files.len(),
-            bytes: manifest.files.iter().map(|f| f.size).sum(),
-        });
+    for format in [learnharness_061::FORMAT, learnharness_070::FORMAT] {
+        let quarantine = quarantine_directory(root, format)?;
+        if !quarantine.exists() {
+            continue;
+        }
+        for entry in fs::read_dir(&quarantine)? {
+            let entry = entry?;
+            let meta = fs::symlink_metadata(entry.path())?;
+            ensure!(
+                meta.is_dir() && !meta.file_type().is_symlink(),
+                "Unsafe quarantine entry"
+            );
+            let revision = entry.file_name().to_string_lossy().into_owned();
+            let (manifest, _) = load(root, &revision)?;
+            items.push(QuarantinedRevision {
+                revision,
+                files: manifest.files.len(),
+                bytes: manifest.files.iter().map(|f| f.size).sum(),
+            });
+        }
     }
     items.sort_by(|a, b| a.revision.cmp(&b.revision));
     Ok(items)
@@ -183,7 +204,11 @@ pub fn list(root: &Path) -> Result<Vec<QuarantinedRevision>> {
 
 impl ExportManifest {
     pub fn from_payload(payload: &Payload) -> Result<Self> {
-        validate_payload(payload)?;
+        Self::from_payload_for_format(payload, learnharness_061::FORMAT)
+    }
+
+    pub fn from_payload_for_format(payload: &Payload, format: &str) -> Result<Self> {
+        validate_payload_for_format(format, payload)?;
         ensure!(
             !payload.is_empty(),
             "Empty managed LearnHarness profile cannot be exported"
@@ -196,7 +221,13 @@ impl ExportManifest {
             .iter()
             .map(|(path, bytes)| (path, sha256(bytes)))
             .collect();
-        let revision = sha256(&serde_json::to_vec(&(&directories, objects))?);
+        let revision = if format == learnharness_061::FORMAT {
+            // Preserve addresses for every existing 0.6.1 quarantine and backup.
+            sha256(&serde_json::to_vec(&(&directories, &objects))?)
+        } else {
+            // The version is part of the new address, even for identical bytes.
+            sha256(&serde_json::to_vec(&(format, &directories, &objects))?)
+        };
         let files = payload
             .iter()
             .map(|(path, bytes)| FileRecord {
@@ -207,7 +238,7 @@ impl ExportManifest {
             .collect();
         Ok(Self {
             version: 1,
-            format: learnharness_061::FORMAT.into(),
+            format: format.into(),
             revision,
             parents: Vec::new(),
             files,
@@ -220,7 +251,7 @@ impl ExportManifest {
             "Unsupported LearnHarness export manifest version"
         );
         ensure!(
-            self.format == learnharness_061::FORMAT,
+            self.format == learnharness_061::FORMAT || self.format == learnharness_070::FORMAT,
             "Unsupported LearnHarness schema"
         );
         ensure!(
@@ -239,7 +270,7 @@ impl ExportManifest {
         let mut total = 0u64;
         for file in &self.files {
             ensure!(
-                learnharness_061::supported_path(&file.path),
+                supported_path(&self.format, &file.path),
                 "Unsupported LearnHarness record path"
             );
             ensure!(valid_hash(&file.hash), "Invalid record hash");
@@ -265,6 +296,10 @@ impl ExportManifest {
 }
 
 pub fn validate_payload(payload: &Payload) -> Result<()> {
+    validate_payload_for_format(learnharness_061::FORMAT, payload)
+}
+
+pub fn validate_payload_for_format(format: &str, payload: &Payload) -> Result<()> {
     ensure!(payload.len() <= MAX_FILES, "Too many LearnHarness records");
     let total = payload.values().try_fold(0usize, |n, bytes| {
         n.checked_add(bytes.len()).context("Profile size overflow")
@@ -274,15 +309,28 @@ pub fn validate_payload(payload: &Payload) -> Result<()> {
         "LearnHarness profile exceeds total size limit"
     );
     ensure!(
-        payload.keys().all(|p| learnharness_061::supported_path(p)),
+        payload.keys().all(|p| supported_path(format, p)),
         "Unsupported LearnHarness record path"
     );
-    learnharness_061::validate(payload).map_err(anyhow::Error::msg)
+    match format {
+        learnharness_061::FORMAT => learnharness_061::validate(payload),
+        learnharness_070::FORMAT => learnharness_070::validate(payload),
+        _ => Err("Unsupported LearnHarness schema".into()),
+    }
+    .map_err(anyhow::Error::msg)
+}
+
+fn supported_path(format: &str, path: &str) -> bool {
+    match format {
+        learnharness_061::FORMAT => learnharness_061::supported_path(path),
+        learnharness_070::FORMAT => learnharness_070::supported_path(path),
+        _ => false,
+    }
 }
 
 pub fn verify(manifest: &ExportManifest, payload: &Payload) -> Result<()> {
     manifest.validate()?;
-    validate_payload(payload)?;
+    validate_payload_for_format(&manifest.format, payload)?;
     ensure!(
         manifest.files.len() == payload.len(),
         "Export inventory does not match content"
@@ -297,7 +345,8 @@ pub fn verify(manifest: &ExportManifest, payload: &Payload) -> Result<()> {
         );
     }
     ensure!(
-        ExportManifest::from_payload(payload)?.revision == manifest.revision,
+        ExportManifest::from_payload_for_format(payload, &manifest.format)?.revision
+            == manifest.revision,
         "LearnHarness revision digest mismatch"
     );
     Ok(())
@@ -307,7 +356,7 @@ pub fn verify(manifest: &ExportManifest, payload: &Payload) -> Result<()> {
 /// repeated delivery is idempotent only when the existing exact tree verifies.
 pub fn stage(root: &Path, manifest: &ExportManifest, payload: &Payload) -> Result<bool> {
     verify(manifest, payload)?;
-    let quarantine = root.join("quarantine").join("learnharness-0.6.1");
+    let quarantine = quarantine_directory(root, &manifest.format)?;
     crate::storage::private_dir(&quarantine)?;
     let target = quarantine.join(&manifest.revision);
     if target.try_exists()? {

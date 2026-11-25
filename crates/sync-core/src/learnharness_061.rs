@@ -1,4 +1,4 @@
-//! QA-only subset of the 0.6.1 desktop stores. Validation never rewrites the bytes.
+//! Strict text-and-graph subset of the 0.6.1 desktop stores. Validation never rewrites bytes.
 use super::{Payload, MAX_FILE, MAX_FILES, MAX_TOTAL};
 use serde::{de::DeserializeOwned, Deserialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -11,9 +11,11 @@ const GRAPH: &[&str] = &[
     "graph/coverage.jsonl",
     "graph/positions.json",
 ];
+const SOURCE_ORGANIZATION: &str = "graph/source-organization.json";
 
 pub fn supported_path(path: &str) -> bool {
     GRAPH.contains(&path)
+        || path == SOURCE_ORGANIZATION
         || path
             .strip_prefix("chats/")
             .and_then(|s| s.strip_suffix(".json"))
@@ -258,6 +260,31 @@ struct Point {
     y: f64,
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SourceOrganization {
+    version: u32,
+    folders: Vec<SourceFolder>,
+    placements: BTreeMap<String, SourcePlacement>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct SourceFolder {
+    id: String,
+    name: String,
+    parent_id: serde_json::Value,
+    created_at: String,
+    import_path: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct SourcePlacement {
+    folder_id: serde_json::Value,
+    name: Option<String>,
+}
+
 type Messages = BTreeMap<String, BTreeSet<String>>;
 fn require(ok: bool, reason: &str) -> Result<(), String> {
     if ok {
@@ -364,6 +391,69 @@ fn anchors(rows: &[Anchor], messages: &Messages, allow_chat: bool) -> bool {
             })
         })
 }
+
+fn validate_source_organization(bytes: &[u8], messages: &Messages) -> Result<(), String> {
+    let organization: SourceOrganization = decode(bytes)?;
+    require(
+        organization.version == 1,
+        "Unknown source organization version",
+    )?;
+    let mut parents = BTreeMap::<String, Option<String>>::new();
+    for folder in organization.folders {
+        let valid_id = folder.id.strip_prefix("folder_").is_some_and(|suffix| {
+            suffix.len() == 36 && suffix.bytes().all(|b| b.is_ascii_hexdigit() || b == b'-')
+        });
+        require(
+            valid_id
+                && !folder.name.trim().is_empty()
+                && !folder.created_at.is_empty()
+                && folder.import_path.is_none(),
+            "Unsupported source folder",
+        )?;
+        let parent = if folder.parent_id.is_null() {
+            None
+        } else {
+            Some(
+                folder
+                    .parent_id
+                    .as_str()
+                    .ok_or("Invalid source folder parent")?
+                    .to_owned(),
+            )
+        };
+        require(
+            parents.insert(folder.id, parent).is_none(),
+            "Duplicate source folder",
+        )?;
+    }
+    for id in parents.keys() {
+        let mut seen = BTreeSet::new();
+        let mut cursor = Some(id.as_str());
+        while let Some(current) = cursor {
+            require(seen.insert(current), "Source folder cycle")?;
+            cursor = parents
+                .get(current)
+                .ok_or("Missing source folder parent")?
+                .as_deref();
+        }
+    }
+    for (source, placement) in organization.placements {
+        require(
+            messages.contains_key(&source) && placement.name.is_none(),
+            "Unsupported source placement",
+        )?;
+        if !placement.folder_id.is_null() {
+            require(
+                placement
+                    .folder_id
+                    .as_str()
+                    .is_some_and(|id| parents.contains_key(id)),
+                "Missing source placement folder",
+            )?;
+        }
+    }
+    Ok(())
+}
 pub fn validate(payload: &Payload) -> Result<(), String> {
     require(
         !payload.is_empty() && payload.len() <= MAX_FILES,
@@ -436,5 +526,9 @@ pub fn validate(payload: &Payload) -> Result<(), String> {
             .keys()
             .all(|p| nodes.contains(p) || junctions.contains(p)),
         "Unknown layout node",
-    )
+    )?;
+    if let Some(bytes) = payload.get(SOURCE_ORGANIZATION) {
+        validate_source_organization(bytes, &messages)?;
+    }
+    Ok(())
 }

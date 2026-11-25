@@ -4,6 +4,7 @@ use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub mod learnharness_061;
+pub mod learnharness_070;
 
 pub const FORMAT: &str = "harness-sync-synthetic-v2";
 pub const MAX_FILE: usize = 16 * 1024 * 1024;
