@@ -12,11 +12,13 @@ On **both** computers, put the six transfer files together in `$HOME/Downloads/l
 cd "$HOME/Downloads/learnharness-sync-physical-070"
 sha256sum -c SHA256SUMS
 stat -f -c %T "$HOME"
+test -x /usr/bin/node
+test -x /usr/bin/curl
 mkdir -p -m 700 "$HOME/learnharness-sync-disposable-test"
 chmod 700 "$HOME/learnharness-sync-disposable-test"
 ```
 
-The filesystem reported for the private parent must be `btrfs`. Do not change an existing personal profile or system service to satisfy a failed prerequisite. The managed launcher also needs the existing Omarchy user namespace, subordinate UID/GID mapping, bubblewrap, `newuidmap`/`newgidmap`, util-linux, btrfs-progs, and display tools described in [SECOND_COMPUTER.md](SECOND_COMPUTER.md).
+The filesystem reported for the private parent must be `btrfs`. The private offline seed also needs the host's `/usr/bin/node` and `/usr/bin/curl`; the packaged test assets include Playwright but not the Node executable. Do not change an existing personal profile or system service to satisfy a failed prerequisite. The managed launcher also needs the existing Omarchy user namespace, subordinate UID/GID mapping, bubblewrap, `newuidmap`/`newgidmap`, util-linux, btrfs-progs, and display tools described in [SECOND_COMPUTER.md](SECOND_COMPUTER.md).
 
 On the **PC (A)**, run:
 

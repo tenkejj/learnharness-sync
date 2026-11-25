@@ -509,10 +509,19 @@ fn qa_real_app_session(operation: &str) -> Result<String, String> {
     };
     let qa_root = match packaged_assets {
         Some(_) => staged_assets.as_ref().unwrap().0.clone(),
-        None => PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .ok_or("Managed application test assets are unavailable")?
-            .to_path_buf(),
+        None => {
+            #[cfg(debug_assertions)]
+            {
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .parent()
+                    .ok_or("Managed application test assets are unavailable")?
+                    .to_path_buf()
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                return Err("Packaged acceptance assets are unavailable".into());
+            }
+        }
     }
     .canonicalize()
     .map_err(|_| "Managed application test assets are unavailable")?;
