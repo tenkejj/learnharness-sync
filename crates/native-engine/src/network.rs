@@ -795,7 +795,7 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn malformed_and_interrupted_managed_exports_never_reach_quarantine() {
-        let t = TempDir::new().unwrap();
+        let t = crate::storage::test_tempdir();
         let a = local(&t).await;
         let b = Engine::start(
             t.path().join("receiver"),
@@ -858,7 +858,7 @@ mod tests {
     }
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn protocol_version_and_message_size_limits() {
-        let t = TempDir::new().unwrap();
+        let t = crate::storage::test_tempdir();
         let a = local(&t).await;
         let b = Engine::start(
             t.path().join("remote"),
@@ -889,7 +889,7 @@ mod tests {
     }
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn replayed_proof_is_invalid_on_new_tls_session() {
-        let t = TempDir::new().unwrap();
+        let t = crate::storage::test_tempdir();
         let a = local(&t).await;
         let b = Engine::start(
             t.path().join("remote"),
@@ -910,7 +910,7 @@ mod tests {
         b.shutdown();
     }
     async fn malicious_response(kind: &'static str) {
-        let t = TempDir::new().unwrap();
+        let t = crate::storage::test_tempdir();
         let a = local(&t).await;
         let old = a
             .request(

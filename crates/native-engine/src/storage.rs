@@ -43,6 +43,16 @@ pub fn nonce() -> Result<String> {
         .map_err(|_| anyhow::anyhow!("Random source unavailable"))?;
     Ok(sha256(&b))
 }
+#[cfg(test)]
+pub(crate) fn test_tempdir() -> tempfile::TempDir {
+    // macOS exposes /var through /private/var. Tests must use the real path
+    // because production storage deliberately rejects symlink ancestry.
+    #[cfg(target_os = "macos")]
+    let root = std::env::temp_dir().canonicalize().unwrap();
+    #[cfg(not(target_os = "macos"))]
+    let root = std::env::temp_dir();
+    tempfile::TempDir::new_in(root).unwrap()
+}
 pub fn safe_path(path: &Path) -> Result<()> {
     ensure!(path.is_absolute(), "Engine path must be absolute");
     for p in path.ancestors() {

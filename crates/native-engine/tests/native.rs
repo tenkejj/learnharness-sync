@@ -13,6 +13,13 @@ use serde_json::json;
 use std::{sync::Arc, time::Duration};
 use tempfile::TempDir;
 
+fn test_tempdir() -> Result<TempDir> {
+    #[cfg(target_os = "macos")]
+    return Ok(TempDir::new_in(std::env::temp_dir().canonicalize()?)?);
+    #[cfg(not(target_os = "macos"))]
+    Ok(TempDir::new()?)
+}
+
 async fn engine(temp: &TempDir, name: &str) -> Arc<Engine> {
     Engine::start(
         temp.path().join(name),
@@ -319,7 +326,7 @@ fn btrfs_managed_apply_creates_independent_backup_and_recovers_unverified_genera
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 async fn managed_export_uses_authenticated_quic_and_stages_without_reconciliation() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = engine(&t, "ManagedA").await;
     let b = engine(&t, "ManagedB").await;
     a.trust(peer(&b))?;
@@ -380,7 +387,7 @@ async fn managed_export_uses_authenticated_quic_and_stages_without_reconciliatio
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn managed_export_requires_sender_consent_and_receiver_trust() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = engine(&t, "ConsentA").await;
     let b = engine(&t, "ConsentB").await;
     let payload = valid_learnharness_payload();
@@ -403,7 +410,7 @@ async fn managed_export_requires_sender_consent_and_receiver_trust() -> Result<(
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn real_quic_pair_transfer_bidirectional_offline_conflict_reconnect_revoke() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = engine(&t, "Desktop").await;
     let b = engine(&t, "Laptop").await;
     init(&a).await;
@@ -449,7 +456,7 @@ async fn real_quic_pair_transfer_bidirectional_offline_conflict_reconnect_revoke
 }
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn rejecting_pairing_persists_no_trust_and_untrusted_sync_is_refused() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = engine(&t, "A").await;
     let b = engine(&t, "B").await;
     assert!(network::connect(a.clone(), peer(&b), false).await.is_err());
@@ -471,7 +478,7 @@ async fn rejecting_pairing_persists_no_trust_and_untrusted_sync_is_refused() -> 
 }
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn wrong_certificate_and_wrong_identity_are_rejected() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = engine(&t, "A").await;
     let b = engine(&t, "B").await;
     let c = engine(&t, "C").await;
@@ -488,7 +495,7 @@ async fn wrong_certificate_and_wrong_identity_are_rejected() -> Result<()> {
 }
 #[test]
 fn durable_storage_recovery_duplicates_hashes_ancestry_backups() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let root = t.path().join("store");
     let s = Store::open(root.clone())?;
     s.initialize()?;
@@ -526,7 +533,7 @@ fn durable_storage_recovery_duplicates_hashes_ancestry_backups() -> Result<()> {
 }
 #[test]
 fn fast_forward_backup_and_restore_are_recoverable() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = Store::open(t.path().join("a"))?;
     let b = Store::open(t.path().join("b"))?;
     a.initialize()?;
@@ -578,7 +585,7 @@ fn copy(a: &Store, b: &Store, head: &str) -> Result<()> {
 }
 #[test]
 fn identity_persists_and_corruption_does_not_regenerate() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let s = Store::open(t.path().join("s"))?;
     let a = harness_sync_native::identity::Identity::load(&s.root)?;
     let b = harness_sync_native::identity::Identity::load(&s.root)?;
@@ -593,7 +600,7 @@ fn identity_persists_and_corruption_does_not_regenerate() -> Result<()> {
 }
 #[test]
 fn active_writer_unknown_schema_disk_failure_and_profile_lock_fail_closed() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let root = t.path().join("s");
     let s = Store::open(root.clone())?;
     s.initialize()?;
@@ -619,7 +626,7 @@ fn active_writer_unknown_schema_disk_failure_and_profile_lock_fail_closed() -> R
 #[test]
 fn symlink_and_hardlink_attacks_fail_closed() -> Result<()> {
     use std::os::unix::fs::symlink;
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let s = Store::open(t.path().join("s"))?;
     let victim = t.path().join("victim");
     std::fs::write(&victim, b"untouched")?;
@@ -639,7 +646,7 @@ fn symlink_and_hardlink_attacks_fail_closed() -> Result<()> {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn nonempty_ordinary_directory_cannot_be_adopted_as_test_profile() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let root = t.path().join("ordinary");
     storage::private_dir(&root)?;
     std::fs::write(root.join("invented-user-file"), b"must remain untouched")?;
@@ -657,7 +664,7 @@ async fn nonempty_ordinary_directory_cannot_be_adopted_as_test_profile() -> Resu
 }
 #[test]
 fn quota_refusal_preserves_head_and_history() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let s = Store::open(t.path().join("s"))?;
     s.initialize()?;
     let first = s.publish(&"a".repeat(64), &adapter::fixture("first")?)?;
@@ -675,7 +682,7 @@ fn quota_refusal_preserves_head_and_history() -> Result<()> {
 #[test]
 fn failed_ledger_commit_preserves_original_and_independent_backup() -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = Store::open(t.path().join("a"))?;
     let b = Store::open(t.path().join("b"))?;
     a.initialize()?;
@@ -714,7 +721,7 @@ fn failed_ledger_commit_preserves_original_and_independent_backup() -> Result<()
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn one_click_test_prepares_both_peers_requires_remote_adoption_and_blocks_duplicates(
 ) -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = engine(&t, "Desktop").await;
     let b = engine(&t, "Laptop").await;
     // No fixture initialization or manual note creation on either computer.
@@ -772,7 +779,7 @@ async fn one_click_test_prepares_both_peers_requires_remote_adoption_and_blocks_
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn test_cannot_claim_success_for_a_divergent_peer() -> Result<()> {
-    let t = TempDir::new()?;
+    let t = test_tempdir()?;
     let a = engine(&t, "Left").await;
     let b = engine(&t, "Right").await;
     init(&a).await;

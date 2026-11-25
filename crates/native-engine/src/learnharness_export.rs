@@ -472,7 +472,6 @@ fn valid_hash(hash: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
 
     fn payload() -> Payload {
         let chat = serde_json::json!({
@@ -492,7 +491,7 @@ mod tests {
     fn validated_manifest_stages_and_duplicate_delivery_is_idempotent() {
         let payload = payload();
         let manifest = ExportManifest::from_payload(&payload).unwrap();
-        let temp = TempDir::new().unwrap();
+        let temp = crate::storage::test_tempdir();
         assert!(stage(temp.path(), &manifest, &payload).unwrap());
         assert!(!stage(temp.path(), &manifest, &payload).unwrap());
         let file = temp
@@ -514,7 +513,7 @@ mod tests {
         let newer =
             ExportManifest::from_payload_for_format(&payload, learnharness_070::FORMAT).unwrap();
         assert_ne!(old.revision, newer.revision);
-        let temp = TempDir::new().unwrap();
+        let temp = crate::storage::test_tempdir();
         stage(temp.path(), &old, &payload).unwrap();
         stage(temp.path(), &newer, &payload).unwrap();
         assert_eq!(list(temp.path()).unwrap().len(), 2);
@@ -554,7 +553,7 @@ mod tests {
             .get_mut("chats/chat_abc123_1234abcd.json")
             .unwrap()
             .push(b' ');
-        let temp = TempDir::new().unwrap();
+        let temp = crate::storage::test_tempdir();
         assert!(stage(temp.path(), &manifest, &damaged).is_err());
         assert!(!temp
             .path()
