@@ -16,7 +16,11 @@ pub use engine::Engine;
 
 mod sync_test;
 
-#[cfg(all(target_os = "linux", feature = "learnharness-qa"))]
+#[cfg(all(
+    target_os = "linux",
+    target_arch = "x86_64",
+    feature = "learnharness-qa"
+))]
 pub mod managed_qa;
 
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]

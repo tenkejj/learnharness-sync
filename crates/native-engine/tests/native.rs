@@ -1,4 +1,6 @@
-use anyhow::{Context, Result};
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+use anyhow::Context;
+use anyhow::Result;
 use harness_sync_core::{sha256, Decision, Manifest};
 use harness_sync_native::{
     adapter,
@@ -106,6 +108,7 @@ fn valid_learnharness_payload() -> std::collections::BTreeMap<String, Vec<u8>> {
 }
 
 #[test]
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 fn managed_merge_preserves_both_chat_branches_and_rejects_identity_edits() -> Result<()> {
     let base = valid_learnharness_payload();
     let mut local = base.clone();
@@ -314,6 +317,7 @@ fn btrfs_managed_apply_creates_independent_backup_and_recovers_unverified_genera
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 async fn managed_export_uses_authenticated_quic_and_stages_without_reconciliation() -> Result<()> {
     let t = TempDir::new()?;
     let a = engine(&t, "ManagedA").await;

@@ -183,6 +183,15 @@ def exercise(package, image, weston_root, host_display=False, release="0.6.1"):
             print("Tauri WebView command successfully requested the subordinate-UID snapshot.", flush=True)
             original_build = vault('exec 9<.; flock -n 9; cat profile-build')
             assert len(original_build) == 64
+            vault('exec 9<.; flock -n 9; rm -- profile-build; '
+                  'printf partial > .profile-build.interrupted; sync -f .')
+            interrupted_build = subprocess.run([package, "--managed-snapshot"], env=env,
+                                               capture_output=True, text=True, timeout=30)
+            assert interrupted_build.returncode == 0, interrupted_build.stderr
+            assert __import__("json").loads(interrupted_build.stdout)["digest"] == snapshot["digest"]
+            assert vault('exec 9<.; flock -n 9; cat profile-build') == original_build
+            vault('exec 9<.; flock -n 9; rm -- .profile-build.interrupted')
+            print("Interrupted executable-binding write recovered using the original verified digest.", flush=True)
             vault('exec 9<.; flock -n 9; printf "%064d\\n" 0 > profile-build; sync -f .')
             wrong_build = subprocess.run([package, "--managed-snapshot"], env=env,
                                          capture_output=True, text=True, timeout=30)

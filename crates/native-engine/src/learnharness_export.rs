@@ -506,6 +506,7 @@ mod tests {
         );
     }
 
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn releases_have_distinct_addresses_and_cross_version_apply_is_refused() {
         let payload = payload();

@@ -1,3 +1,5 @@
+#![cfg(all(target_os = "linux", target_arch = "x86_64"))]
+
 use harness_sync_core::learnharness_070;
 use harness_sync_native::{
     compatibility, learnharness_export::ExportManifest, managed_profile::Tree,

@@ -42,7 +42,10 @@ if [[ ! -e profile-build ]]; then
       [[ $build_sha == 772b5e04d380cbe8a72a75dbff269aeb6a47f4d4452711b1da8059a872067613 ]] || { echo 'Legacy 0.7.0 vault requires its original verified build.' >&2; exit 76; }
     fi
   fi
-  printf '%s\n' "$build_sha" > profile-build
+  build_marker=$(mktemp .profile-build.XXXXXXXX)
+  printf '%s\n' "$build_sha" > "$build_marker"
+  sync -f "$build_marker"
+  mv -T -- "$build_marker" profile-build
   sync -f .
 fi
 [[ -f profile-build && ! -L profile-build && $(cat profile-build) == "$build_sha" ]] || { echo 'Managed profile is bound to another verified executable. Keep its pinned image; upgrades need separate qualification.' >&2; exit 76; }
