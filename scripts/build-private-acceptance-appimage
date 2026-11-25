@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")/.."
+root=$(cd "$(dirname "$0")/.." && pwd -P)
+cd "$root"
+# Keep developer filesystem paths out of the privately transferred binary.
+export CARGO_ENCODED_RUSTFLAGS="${CARGO_ENCODED_RUSTFLAGS:+$CARGO_ENCODED_RUSTFLAGS$'\x1f'}--remap-path-prefix=$HOME=/build/user"$'\x1f'"--remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/build/cargo"$'\x1f'"--remap-path-prefix=$root=/build/harness-sync"
+export CFLAGS="${CFLAGS:-} -ffile-prefix-map=$HOME=/build/user"
+export CXXFLAGS="${CXXFLAGS:-} -ffile-prefix-map=$HOME=/build/user"
 mkdir -p build
 cc -Wall -Werror tests/learnharness/close-window.c -lX11 -o build/managed-close-window
 chmod 755 build/managed-close-window
