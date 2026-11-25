@@ -32,6 +32,34 @@ fn stage_helper(source: PathBuf) -> Result<StagedHelper, String> {
 }
 
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+fn configure_verified_image(cmd: &mut Command) -> Result<(), String> {
+    let selected =
+        harness_sync_native::compatibility::detect_from_env().map_err(|e| e.to_string())?;
+    let home = PathBuf::from(std::env::var_os("HOME").ok_or("HOME is unavailable")?);
+    let data = std::env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| home.join(".local/share"));
+    let pinned = harness_sync_native::compatibility::retain_verified_image(&selected, &data)
+        .map_err(|e| format!("Could not retain the verified LearnHarness executable: {e}"))?;
+    cmd.env("LEARNHARNESS_SYNC_VERIFIED_IMAGE", pinned)
+        .env("LEARNHARNESS_SYNC_VERIFIED_SHA", &selected.build.sha256)
+        .env(
+            "LEARNHARNESS_SYNC_VERIFIED_SIZE",
+            selected.build.size.to_string(),
+        )
+        .env(
+            "LEARNHARNESS_SYNC_VERIFIED_RELEASE",
+            &selected.build.release_key,
+        );
+    Ok(())
+}
+
+#[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
+fn configure_verified_image(_cmd: &mut Command) -> Result<(), String> {
+    Err("Managed LearnHarness requires Linux x86_64".into())
+}
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub fn snapshot() -> Result<serde_json::Value, String> {
     let value = request(harness_sync_native::managed_bridge::Operation::Snapshot)?;
     validate_snapshot_metadata(&value)?;
@@ -287,6 +315,7 @@ fn request_via(
     cmd.env_clear()
         .env("PATH", "/usr/bin")
         .env("LANG", "C.UTF-8");
+    configure_verified_image(&mut cmd)?;
     if qa_probe {
         cmd.env("LEARNHARNESS_SYNC_MANAGED_QA_LOG", "1");
     }
@@ -511,6 +540,7 @@ fn qa_real_app_session(operation: &str) -> Result<String, String> {
     cmd.env_clear()
         .env("PATH", "/usr/bin")
         .env("LANG", "C.UTF-8");
+    configure_verified_image(&mut cmd)?;
     for key in [
         "HOME",
         "XDG_DATA_HOME",
@@ -581,6 +611,7 @@ pub fn run(operation: &str) -> Result<String, String> {
     cmd.env_clear()
         .env("PATH", "/usr/bin")
         .env("LANG", "C.UTF-8");
+    configure_verified_image(&mut cmd)?;
     for key in [
         "HOME",
         "XDG_DATA_HOME",

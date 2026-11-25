@@ -181,6 +181,37 @@ def exercise(package, image, weston_root, host_display=False, release="0.6.1"):
             assert report["ok"] and report["managed_snapshot"]["digest"] == snapshot["digest"], report
             assert report["managed_snapshot"]["manifest"] == oracle["manifest"], "Tauri command manifest differs from independent LearnHarness data"
             print("Tauri WebView command successfully requested the subordinate-UID snapshot.", flush=True)
+            original_build = vault('exec 9<.; flock -n 9; cat profile-build')
+            assert len(original_build) == 64
+            vault('exec 9<.; flock -n 9; printf "%064d\\n" 0 > profile-build; sync -f .')
+            wrong_build = subprocess.run([package, "--managed-snapshot"], env=env,
+                                         capture_output=True, text=True, timeout=30)
+            assert wrong_build.returncode != 0 and "another verified executable" in wrong_build.stderr, wrong_build.stderr
+            vault(f'exec 9<.; flock -n 9; printf "%s\\n" "{original_build}" > profile-build; sync -f .')
+            restored_build = subprocess.run([package, "--managed-snapshot"], env=env,
+                                            capture_output=True, text=True, timeout=30)
+            assert restored_build.returncode == 0, restored_build.stderr
+            assert __import__("json").loads(restored_build.stdout)["digest"] == snapshot["digest"]
+            print("Changed executable binding refused; restoring the verified build retained the same immutable snapshot.", flush=True)
+            installed.rename(installed.with_suffix(".held"))
+            unknown = home/"Applications/LearnHarness-0.8.0-x86_64.AppImage"
+            unknown.write_bytes(b"Unverified disposable upgrade probe")
+            try:
+                pinned = subprocess.run([package, "--managed-snapshot"], env=env,
+                                        capture_output=True, text=True, timeout=30)
+                assert pinned.returncode == 0, pinned.stderr
+                assert __import__("json").loads(pinned.stdout)["digest"] == snapshot["digest"]
+                update_smoke = subprocess.run([package, "--smoke-test", "--smoke-managed-snapshot"], env=env,
+                                               capture_output=True, text=True, timeout=120)
+                assert update_smoke.returncode == 0, update_smoke.stderr + update_smoke.stdout
+                report_path = next(line.split("=", 1)[1] for line in update_smoke.stdout.splitlines()
+                                   if line.startswith("NATIVE_SMOKE_REPORT="))
+                update_report = __import__("json").loads(Path(report_path).read_text())
+                assert f"{release} verified" in update_report["installation"] and "unverified LearnHarness 0.8.0" in update_report["installation"]
+                print(f"Unknown upstream upgrade refused; private pinned {release} image and UI warning passed.", flush=True)
+            finally:
+                unknown.unlink(missing_ok=True)
+                installed.with_suffix(".held").rename(installed)
             original_generation = vault('exec 9<.; flock -n 9; cat current')
             malformed_generation = vault(
                 'exec 9<.; flock -n 9; old=$(cat current); '
@@ -257,7 +288,7 @@ def exercise(package, image, weston_root, host_display=False, release="0.6.1"):
                   'for dir in session.*; do btrfs property set -ts "$dir" ro false; '
                   'if ! btrfs subvolume delete "$dir" >/dev/null; then '
                   'btrfs property set -ts "$dir" ro true; exit 1; fi; done; '
-                  'rm -f -- current active apply.pending.json current.next profile-format interrupted.*; '
+                  'rm -f -- current active apply.pending.json current.next profile-format profile-build interrupted.*; '
                   f'cd /slot; rmdir {vault_name}')
             shutil.rmtree(root)
         except subprocess.CalledProcessError:

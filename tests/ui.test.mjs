@@ -474,6 +474,7 @@ test("managed apply requires explicit consent and reports application readback s
       name: "Studio desktop",
       production_mutation: false,
       installation: "LearnHarness 0.6.1 verified",
+      compatible: true,
       profile: "/managed/test",
       detected: true,
     }),
@@ -494,6 +495,12 @@ test("managed apply requires explicit consent and reports application readback s
       .click();
     await managedPage
       .getByRole("heading", { name: "Managed LearnHarness", exact: true })
+      .waitFor();
+    await managedPage
+      .getByRole("heading", { name: "LearnHarness compatibility" })
+      .waitFor();
+    await managedPage
+      .getByText("LearnHarness 0.6.1 verified", { exact: true })
       .waitFor();
     const apply = managedPage.getByRole("button", {
       name: "Apply verified revision",

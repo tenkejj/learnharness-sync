@@ -1,5 +1,7 @@
 use harness_sync_core::learnharness_070;
-use harness_sync_native::{learnharness_export::ExportManifest, managed_profile::Tree};
+use harness_sync_native::{
+    compatibility, learnharness_export::ExportManifest, managed_profile::Tree,
+};
 use std::path::PathBuf;
 
 #[test]
@@ -59,4 +61,42 @@ fn real_070_text_graph_profile_matches_the_existing_strict_subset() {
         invalid.insert(key.into(), serde_json::to_vec(&organization).unwrap());
         assert!(learnharness_070::validate(&invalid).is_err());
     }
+}
+
+#[test]
+#[ignore = "requires the official 0.7.0 AppImage in an ignored disposable qualification directory"]
+fn verified_image_survives_an_untrusted_upstream_update() {
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap();
+    let source =
+        repo.join("build/qualification/learnharness-070/LearnHarness-0.7.0-x86_64.AppImage");
+    let selected = compatibility::matrix()
+        .builds
+        .iter()
+        .find(|build| build.version == "0.7.0")
+        .unwrap();
+    compatibility::verify_image(&source, selected).unwrap();
+    let temp =
+        tempfile::TempDir::new_in(repo.join("build/qualification/learnharness-070")).unwrap();
+    let home = temp.path().join("home");
+    let data = temp.path().join("data");
+    std::fs::create_dir_all(home.join("Applications")).unwrap();
+    let installed = home.join("Applications/LearnHarness-0.7.0-x86_64.AppImage");
+    std::fs::copy(&source, &installed).unwrap();
+    let first = compatibility::detect(&home, &data).unwrap();
+    assert_eq!(first.build.version, "0.7.0");
+    let pinned = compatibility::retain_verified_image(&first, &data).unwrap();
+    std::fs::remove_file(installed).unwrap();
+    std::fs::write(
+        home.join("Applications/LearnHarness-0.8.0-x86_64.AppImage"),
+        b"unknown",
+    )
+    .unwrap();
+    let after = compatibility::detect(&home, &data).unwrap();
+    assert_eq!(after.build.version, "0.7.0");
+    assert_eq!(after.newer_unverified.as_deref(), Some("0.8.0"));
+    assert_eq!(after.source, pinned);
+    assert_eq!(std::fs::metadata(pinned).unwrap().len(), selected.size);
 }

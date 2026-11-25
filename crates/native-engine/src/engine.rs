@@ -69,7 +69,7 @@ pub struct Engine {
     pub identity: Identity,
     pub endpoint: quinn::Endpoint,
     pub store: Arc<Mutex<Store>>,
-    installation: std::result::Result<&'static str, &'static str>,
+    installation: std::result::Result<String, String>,
     runtime: Mutex<Runtime>,
     mdns: Mutex<Option<mdns_sd::ServiceDaemon>>,
     stopped: AtomicBool,
@@ -570,11 +570,16 @@ impl Engine {
                 }
             }
             "settings" => {
-                let installation = match self.installation {
+                // A desktop can stay open while the upstream AppImage changes.
+                // Recheck exact bytes whenever Settings opens; managed commands
+                // perform their own independent check immediately before use.
+                let detected = tokio::task::spawn_blocking(adapter::detect_installation).await?;
+                let compatible = detected.is_ok();
+                let installation = match detected {
                     Ok(version) | Err(version) => version,
                 };
                 Ok(
-                    json!({"version":2,"name":self.name(),"production_mutation":false,"installation":installation,"profile":self.disk(|s|Ok(s.root.to_string_lossy().to_string())).await?}),
+                    json!({"version":2,"name":self.name(),"production_mutation":false,"installation":installation,"compatible":compatible,"profile":self.disk(|s|Ok(s.root.to_string_lossy().to_string())).await?}),
                 )
             }
             "save_settings" => {

@@ -13,6 +13,7 @@ export type Configuration = {
   name: string;
   profile: string;
   installation: string;
+  compatible: boolean;
   production_mutation: false;
 };
 export type ManagedSnapshot = {
@@ -99,6 +100,7 @@ export async function loadSettings(): Promise<Configuration> {
     typeof value.name !== "string" ||
     typeof value.profile !== "string" ||
     typeof value.installation !== "string" ||
+    typeof value.compatible !== "boolean" ||
     value.production_mutation !== false
   )
     throw new Error("Unsupported local settings");

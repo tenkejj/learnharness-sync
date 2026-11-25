@@ -5,6 +5,8 @@ umask 077
 op=$1 number=$2 qa_log=${3:-}
 qa_root=${6:-}
 release=${7:-}
+build_sha=${8:-}
+[[ $build_sha =~ ^[a-f0-9]{64}$ ]] || { echo 'Missing verified executable identity.' >&2; exit 64; }
 case "$release" in
   061) vault=/slot/vault; profile_format=learnharness-0.6.1-disposable-v1 ;;
   070) vault=/slot/vault-070; profile_format=learnharness-0.7.0-disposable-v1 ;;
@@ -30,6 +32,20 @@ if [[ $release == 070 ]]; then
 else
   [[ ! -e profile-format ]] || { echo 'Legacy managed vault release mismatch.' >&2; exit 76; }
 fi
+if [[ ! -e profile-build ]]; then
+  # Older vaults predate this marker. Bind them only to their original,
+  # independently qualified executable; never infer a future upgrade.
+  if [[ -e current ]]; then
+    if [[ $release == 061 ]]; then
+      [[ $build_sha == b8a033eb7421677893d96e4988b30153fdfe4fc6f0dc456f7947161bba041b98 ]] || { echo 'Legacy 0.6.1 vault requires its original verified build.' >&2; exit 76; }
+    else
+      [[ $build_sha == 772b5e04d380cbe8a72a75dbff269aeb6a47f4d4452711b1da8059a872067613 ]] || { echo 'Legacy 0.7.0 vault requires its original verified build.' >&2; exit 76; }
+    fi
+  fi
+  printf '%s\n' "$build_sha" > profile-build
+  sync -f .
+fi
+[[ -f profile-build && ! -L profile-build && $(cat profile-build) == "$build_sha" ]] || { echo 'Managed profile is bound to another verified executable. Keep its pinned image; upgrades need separate qualification.' >&2; exit 76; }
 current=''
 if [[ -e current ]]; then
   current=$(cat current)

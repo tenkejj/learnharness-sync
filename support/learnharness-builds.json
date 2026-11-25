@@ -1,0 +1,32 @@
+{
+  "matrix_version": 1,
+  "schema_profile": "chat-v2-graph-v1-source-organization-v1-strict-text",
+  "schema_sources": {
+    "src/store/chats.ts": "bb4379362e83129b9edec4e8408930e61c701ee2dff7a8737a976564e9599a53",
+    "src/core/contracts/chat.ts": "3d82ccb3fddbda23f1d33ec5f59540c712b36a3c08ab51ab7dafb3dc1d4e9af4",
+    "src/core/contracts/graph.ts": "fef57661db88c4ac8a78af24a79591a74fcf3cbd2a6995f046000cdb7511ede7",
+    "src/store/source-organization.ts": "b3acb91a6e22bf2062754fbc94e19fc92cec363b247027550d55bb46cabf06c9"
+  },
+  "builds": [
+    {
+      "version": "0.6.1",
+      "filename": "LearnHarness-0.6.1-x86_64.AppImage",
+      "size": 196784591,
+      "sha256": "b8a033eb7421677893d96e4988b30153fdfe4fc6f0dc456f7947161bba041b98",
+      "wire_format": "learnharness-0.6.1-disposable-v1",
+      "vault": "vault",
+      "release_key": "061",
+      "source_tag": "v0.6.1"
+    },
+    {
+      "version": "0.7.0",
+      "filename": "LearnHarness-0.7.0-x86_64.AppImage",
+      "size": 196652282,
+      "sha256": "772b5e04d380cbe8a72a75dbff269aeb6a47f4d4452711b1da8059a872067613",
+      "wire_format": "learnharness-0.7.0-disposable-v1",
+      "vault": "vault-070",
+      "release_key": "070",
+      "source_tag": "v0.7.0"
+    }
+  ]
+}

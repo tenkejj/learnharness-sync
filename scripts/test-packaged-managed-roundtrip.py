@@ -483,7 +483,7 @@ def main():
                     '[[ $(btrfs property get -ts "$g" ro) == ro=true ]] && btrfs property set -ts "$g" ro false; '
                     'if ! btrfs subvolume delete "$g"; then btrfs property set -ts "$g" ro true; exit 1; fi; done; '
                     'for f in transactions/apply-*.json; do [[ -f "$f" ]] && rm -- "$f"; done; '
-                    'rm -f -- active current current.next apply.pending.json profile-format; '
+                    'rm -f -- active current current.next apply.pending.json profile-format profile-build; '
                     f'rmdir transactions backups 2>/dev/null || true; rmdir {VAULT_NAME}'
                 )
             except (OSError, subprocess.CalledProcessError) as exc:

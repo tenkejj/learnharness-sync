@@ -48,7 +48,7 @@ for artifact in artifacts:
             if name in forbidden or 'syncthing' in name or 'python' in name or path.suffix in ('.py','.pyc'):
                 raise SystemExit('Unexpected runtime/private entry: '+str(path.relative_to(stage)))
             data = path.read_bytes()
-            if name == 'harness-sync' and os.fsencode(Path.home()) + b'/' in data:
+            if name in ('harness-sync', 'learnharness-sync') and os.fsencode(Path.home()) + b'/' in data:
                 raise SystemExit('Developer home path embedded in packaged executable')
             for index, pattern in enumerate(patterns):
                 for match in pattern.finditer(data):

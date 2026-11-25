@@ -1,0 +1,51 @@
+name: Monitor upstream LearnHarness compatibility
+on:
+  schedule:
+    - cron: "23 4 * * 2"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-upstream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify upstream release metadata and source contracts
+        id: inspect
+        run: python scripts/monitor-learnharness-release.py --report upstream-compatibility-report.json --github-output "$GITHUB_OUTPUT"
+      - name: Test the release classifier
+        run: python -m unittest discover -s tests -p 'test_upstream_monitor.py' -v
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Recheck the supported strict parsers
+        run: cargo test --locked -p harness-sync-core -p harness-sync-native
+      - name: Install disposable sandbox tool for candidate probe
+        if: steps.inspect.outputs.candidate == 'true'
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - name: Isolated extraction of an unverified candidate
+        if: steps.inspect.outputs.candidate == 'true'
+        env:
+          ASSET_URL: ${{ steps.inspect.outputs.asset_url }}
+          ASSET_SHA256: ${{ steps.inspect.outputs.asset_sha256 }}
+          ASSET_SIZE: ${{ steps.inspect.outputs.asset_size }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --max-time 300 --proto '=https' --proto-redir '=https' --tlsv1.2 --output candidate.AppImage "$ASSET_URL"
+          test "$(stat -c %s candidate.AppImage)" = "$ASSET_SIZE"
+          printf '%s  candidate.AppImage\n' "$ASSET_SHA256" | sha256sum --check --status
+          chmod 700 candidate.AppImage
+          timeout 90 bwrap --die-with-parent --unshare-all --clearenv \
+            --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 --symlink usr/bin /bin \
+            --ro-bind "$PWD/candidate.AppImage" /candidate.AppImage --proc /proc --dev /dev \
+            --tmpfs /work --chdir /work --setenv PATH /usr/bin --setenv HOME /work \
+            /usr/bin/bash -ec '/candidate.AppImage --appimage-extract >/dev/null; test -f squashfs-root/resources/app.asar; test -x squashfs-root/learnharness'
+      - name: Preserve the read-only qualification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-compatibility-report
+          path: upstream-compatibility-report.json
+          if-no-files-found: warn

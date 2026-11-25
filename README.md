@@ -46,6 +46,8 @@ Only the verified text-and-graph profile contract is accepted. The 0.6.1 and 0.7
 
 At startup the desktop checks the AppImage at `~/Applications/LearnHarness-0.7.0-x86_64.AppImage` or the corresponding 0.6.1 path against the exact size and digest of its upstream release. If both are installed, it selects 0.7.0. Home and Settings report detection. The real-data workflow runs only against a pinned executable inside its isolated, version-specific managed profile. [0.7.0 release](https://github.com/amosblomqvist/learnharness/releases/tag/v0.7.0) · [0.6.1 release](https://github.com/amosblomqvist/learnharness/releases/tag/v0.6.1)
 
+Unknown upstream builds are reported but never launched in a managed vault. A private, reverified copy of a supported AppImage can keep the managed profile on its reviewed build after an upstream update. Existing vaults refuse a changed executable digest; profile upgrades require separate qualification and are not enabled yet. [Build matrix and future release procedure](docs/UPSTREAM_COMPATIBILITY.md)
+
 | | Verified scope |
 |---|---|
 | Installed desktop | Pinned executable detection, isolated managed sessions, consented real-data export, quarantine, backed-up Apply and application readback, plus LAN pairing and synthetic test revisions |

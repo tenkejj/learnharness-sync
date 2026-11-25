@@ -1,5 +1,7 @@
 //! LearnHarness Sync's in-process, LAN-first engine. Production LearnHarness access is intentionally unavailable.
 pub mod adapter;
+#[cfg(unix)]
+pub mod compatibility;
 pub mod discovery;
 pub mod engine;
 pub mod identity;

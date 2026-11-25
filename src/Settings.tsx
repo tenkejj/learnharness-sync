@@ -280,7 +280,18 @@ export function SettingsContent({
           <BackupInspection />
         </div>
       </details>
-      {data.detected && <ManagedSession />}
+      <section>
+        <h3>LearnHarness compatibility</h3>
+        <p role="status">
+          {config?.installation ?? "Checking the installed LearnHarness build…"}
+        </p>
+        <p className="secondary-copy">
+          {config?.compatible
+            ? "The managed profile uses a verified, pinned executable. A newer unverified build cannot open or migrate it."
+            : "Install a verified 0.7.0 or 0.6.1 AppImage in ~/Applications. Existing managed data and trusted devices stay in place."}
+        </p>
+      </section>
+      {config?.compatible && <ManagedSession />}
       <section className="about">
         <h3>
           <Info size={21} aria-hidden="true" />
@@ -293,7 +304,6 @@ export function SettingsContent({
           for LearnHarness. It is not affiliated with or endorsed by the
           LearnHarness developers.
         </p>
-        {config && <p>{config.installation}</p>}
         <p>
           <ShieldCheck size={20} aria-hidden="true" />
           Synchronization requires a verified LearnHarness managed profile.
