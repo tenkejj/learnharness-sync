@@ -11,14 +11,15 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import stat
 import subprocess
 import sys
 import tempfile
 
 
-UPSTREAM_SHA256 = "b8a033eb7421677893d96e4988b30153fdfe4fc6f0dc456f7947161bba041b98"
 MARKER = ".learnharness-sync-disposable-acceptance.json"
+REGISTRY = "learnharness-builds.json"
 
 
 def digest(path):
@@ -45,6 +46,33 @@ def private_root(path):
     if metadata.st_uid != os.getuid() or metadata.st_mode & 0o077:
         raise RuntimeError("Acceptance root must be owned by this user and mode 0700")
     return path
+
+
+def verified_build(registry, version):
+    registry = regular_file(registry)
+    matrix = json.loads(registry.read_text(encoding="utf-8"))
+    if matrix.get("matrix_version") != 1 or matrix.get("schema_profile") != "chat-v2-graph-v1-source-organization-v1-strict-text":
+        raise RuntimeError("Unsupported LearnHarness compatibility registry")
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+        raise RuntimeError("Invalid explicit LearnHarness version")
+    rows = [row for row in matrix.get("builds", []) if row.get("version") == version]
+    if len(rows) != 1:
+        raise RuntimeError(f"LearnHarness {version} has no unique verified build in the registry")
+    row = rows[0]
+    if (row.get("filename") != f"LearnHarness-{version}-x86_64.AppImage"
+            or row.get("wire_format") != f"learnharness-{version}-disposable-v1"
+            or not isinstance(row.get("size"), int) or not 100_000_000 < row["size"] < 500_000_000
+            or not isinstance(row.get("sha256"), str)
+            or not re.fullmatch(r"[a-f0-9]{64}", row["sha256"])):
+        raise RuntimeError("Malformed verified LearnHarness build entry")
+    return registry, row
+
+
+def verify_image(path, row):
+    image = regular_file(path)
+    if image.stat().st_size != row["size"] or digest(image) != row["sha256"]:
+        raise RuntimeError(f"LearnHarness {row['version']} image differs from the exact verified x86_64 build")
+    return image
 
 
 def environment(root, test=False):
@@ -91,6 +119,13 @@ def read_state(root):
     state = json.loads(marker.read_text(encoding="utf-8"))
     if state.get("format") != "learnharness-sync-disposable-v1":
         raise RuntimeError("This is not a prepared disposable acceptance root")
+    registry = regular_file(root / REGISTRY)
+    if digest(registry) != state["registry_sha256"]:
+        raise RuntimeError("Disposable compatibility registry changed")
+    _, build = verified_build(registry, state["learnharness_version"])
+    if build["sha256"] != state["learnharness_sha256"]:
+        raise RuntimeError("Disposable LearnHarness build identity changed")
+    verify_image(root / "home/Applications" / build["filename"], build)
     for name in ("home", "data"):
         path = root / name
         if path.is_symlink() or not path.is_dir() or path.stat().st_uid != os.getuid():
@@ -111,24 +146,29 @@ def prepare(args):
         raise RuntimeError("Prepare inside a private directory on Btrfs")
     ordinary = regular_file(args.ordinary)
     acceptance = regular_file(args.acceptance)
-    upstream = regular_file(args.learnharness)
-    if digest(upstream) != UPSTREAM_SHA256:
-        raise RuntimeError("LearnHarness image differs from verified 0.6.1 x86_64 build")
+    registry, build = verified_build(args.registry, args.version)
+    upstream = verify_image(args.learnharness, build)
     root = Path(tempfile.mkdtemp(prefix="learnharness-sync-physical-", dir=parent))
     try:
         for name in ("home", "data"):
             (root / name).mkdir(mode=0o700)
         applications = root / "home/Applications"
         applications.mkdir(mode=0o700)
-        private_app = applications / "LearnHarness-0.6.1-x86_64.AppImage"
+        private_app = applications / build["filename"]
         with upstream.open("rb") as source, private_app.open("xb") as target:
             os.chmod(private_app, 0o700)
             for chunk in iter(lambda: source.read(1024 * 1024), b""):
                 target.write(chunk)
             target.flush()
             os.fsync(target.fileno())
-        if digest(private_app) != UPSTREAM_SHA256:
-            raise RuntimeError("Private LearnHarness copy failed integrity check")
+        verify_image(private_app, build)
+        with registry.open("rb") as source, (root / REGISTRY).open("xb") as target:
+            os.chmod(root / REGISTRY, 0o600)
+            target.write(source.read())
+            target.flush()
+            os.fsync(target.fileno())
+        if digest(root / REGISTRY) != digest(registry):
+            raise RuntimeError("Private compatibility registry copy failed integrity check")
         ordinary_check = subprocess.run(
             [str(ordinary), "--managed-acceptance-peer"],
             env=environment(root), capture_output=True, text=True, timeout=20,
@@ -137,6 +177,9 @@ def prepare(args):
             raise RuntimeError("Ordinary AppImage unexpectedly contains the acceptance console")
         write_state(root, {
             "format": "learnharness-sync-disposable-v1", "state": "prepared",
+            "registry_sha256": digest(registry),
+            "learnharness_version": build["version"],
+            "learnharness_sha256": build["sha256"],
             "ordinary": {"path": str(ordinary), "sha256": digest(ordinary)},
             "acceptance": {"path": str(acceptance), "sha256": digest(acceptance)},
         })
@@ -200,6 +243,9 @@ def verify(root, state, chat_id, expected_messages):
         raise RuntimeError("A previous acceptance operation has an uncertain outcome")
     bundle = console_request(root, state, "__managed_capture_for_test")
     manifest = bundle["manifest"]
+    _, build = verified_build(root / REGISTRY, state["learnharness_version"])
+    if manifest["format"] != build["wire_format"]:
+        raise RuntimeError("Managed capture uses another LearnHarness wire format")
     files = manifest["files"]
     records = {row["path"]: base64.b64decode(row["data"], validate=True) for row in bundle["records"]}
     if len(records) != len(files) or set(records) != {row["path"] for row in files}:
@@ -227,6 +273,13 @@ def verify(root, state, chat_id, expected_messages):
     positions = json.loads(records["graph/positions.json"])["positions"]
     if len(positions) != 4 or not node_ids.issubset(positions) or not any(chain["id"] in positions for chain in chains):
         raise RuntimeError("Saved graph layout differs")
+    if state["learnharness_version"] == "0.7.0":
+        organization = json.loads(records["graph/source-organization.json"])
+        folders = organization["folders"]
+        if (organization["version"] != 1 or len(folders) != 1
+                or folders[0]["name"] != "Disposable 0.7 folder"
+                or organization["placements"][chat_id]["folderId"] != folders[0]["id"]):
+            raise RuntimeError("LearnHarness 0.7.0 conversation folder placement differs")
     print(json.dumps({
         "verified": True, "chatId": chat_id,
         "messageIds": sorted(message_ids),
@@ -243,6 +296,8 @@ def main():
     create = choices.add_parser("prepare", help="Create a new isolated acceptance HOME on Btrfs")
     for name in ("parent", "ordinary", "acceptance", "learnharness"):
         create.add_argument("--" + name, type=Path, required=True)
+    create.add_argument("--registry", type=Path, required=True)
+    create.add_argument("--version", required=True, choices=("0.6.1", "0.7.0"))
     for name in ("seed", "extend", "app", "learnharness", "snapshot", "verify"):
         action = choices.add_parser(name)
         action.add_argument("root", type=Path)

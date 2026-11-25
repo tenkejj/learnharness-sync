@@ -1,102 +1,39 @@
-# Run this candidate on your other Linux computer
+# Copy LearnHarness Sync to a second Omarchy computer
 
-Use the same build on **both** computers. This candidate uses HSQ/2 remote-head
-verification; an older HSQ/1 AppImage cannot connect to it. Existing native device
-identities and trust pins are kept when you update the application.
+Use the **same checksummed candidate** on the PC and laptop. This is a private physical-test package, not a public release. The transfer folder is `build/physical-070/` in the development checkout. Its six files are:
 
-## Portable AppImage
+| File | Purpose |
+|---|---|
+| `LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage` | Ordinary desktop candidate; no test console |
+| `LearnHarness-Sync_0.2.0-alpha.1_PRIVATE-ACCEPTANCE.AppImage` | Private offline acceptance commands; never publish |
+| `LearnHarness-0.7.0-x86_64.AppImage` | Exact reviewed upstream build for disposable profiles |
+| `physical-managed-acceptance.py` | Creates and checks isolated test HOME/XDG roots |
+| `learnharness-builds.json` | Reviewed 0.6.1/0.7.0 build and schema matrix |
+| `SHA256SUMS` | Hashes of the five files above |
 
-The ordinary, no-acceptance-feature candidate is
-`target/release/bundle/appimage/LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage`
-in the repository checkout. Its SHA-256 is
-`eb8a4c89369c19ade0761a28d503bad6a4aff0d89331937f7b8282830b924c0c`.
-This is a private physical-test candidate, not a published release. Copy only
-the AppImage to Downloads on both computers using USB or another trusted
-channel. Do not copy application profiles, native stores or backups.
-
-Copy the AppImage to a folder you control on each computer. From that folder:
+Copy the **entire folder** by trusted USB storage or, if SSH is already available, from the PC with:
 
 ```sh
+scp -r "$HOME/Projects/harness-sync/build/physical-070" USER@LAPTOP_IP:~/Downloads/learnharness-sync-physical-070
+```
+
+Replace `USER@LAPTOP_IP` with the laptop's actual SSH destination. Do not enable a new system service just for this test. The PC can run from its checkout's `build/physical-070/`; the laptop uses `~/Downloads/learnharness-sync-physical-070/`. On **both** computers:
+
+```sh
+cd /path/to/learnharness-sync-physical-070
+sha256sum -c SHA256SUMS
 chmod +x LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage
-printf '%s  %s\n' 'eb8a4c89369c19ade0761a28d503bad6a4aff0d89331937f7b8282830b924c0c' 'LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage' | sha256sum -c -
-./LearnHarness-Sync_0.2.0-alpha.1_amd64.AppImage
+chmod +x LearnHarness-Sync_0.2.0-alpha.1_PRIVATE-ACCEPTANCE.AppImage
 ```
 
-No account, Python runtime, external sync service or new background service is
-needed. This x86_64 candidate was built and tested on the development Linux
-host. It requires glibc 2.39 or newer. GTK/WebKit libraries are bundled; FUSE 2
-is optional if you use `--appimage-extract-and-run`. Other distributions, GPU
-drivers and architectures are not certified.
+Compare the SHA-256 of `SHA256SUMS` with the value in the owner's handoff before trusting the copied folder. Keep this folder private: the acceptance AppImage is feature-enabled and must never be uploaded to GitHub Releases. It can only create test content inside a fresh disposable HOME through the runner. Do not copy application profiles, pairing keys, native stores or backups between computers.
 
-For managed LearnHarness synchronization, the host must also provide a Btrfs
-filesystem, unprivileged user namespaces with existing subordinate UID/GID
-allocations, `newuidmap`/`newgidmap`, bubblewrap, util-linux, btrfs-progs, and
-the supported display support (`xauth` plus rootful Xwayland on Wayland, or
-Xephyr on X11). Install the pinned LearnHarness 0.6.1 AppImage at
-`~/Applications/LearnHarness-0.6.1-x86_64.AppImage`; its expected size and SHA
-are recorded in [MANAGED_LINUX.md](MANAGED_LINUX.md). The LearnHarness Sync
-managed launcher executes a verified private copy and uses a separate profile.
+For the real 0.7.0 A → B → A procedure, follow [TWO_DEVICE_ACCEPTANCE.md](TWO_DEVICE_ACCEPTANCE.md). It invokes both AppImages with separate disposable managed profiles and verifies the exact upstream AppImage against [the reviewed matrix](UPSTREAM_COMPATIBILITY.md). The ordinary personal LearnHarness profile is never selected. To test 0.6.1 separately, obtain its exact reviewed AppImage and choose `--version 0.6.1`; never mix the two versions in one acceptance run.
 
-Verify the copied files with `sha256sum -c SHA256SUMS` if you copy the whole folder.
-If a host cannot mount AppImages through FUSE, use the AppImage runtime’s extraction
-mode and run `squashfs-root/AppRun` from the extracted bundle. Ubuntu DEB and Fedora RPM verification is recorded in [the qualification report](LEARNHARNESS_061.md).
+## Ordinary desktop prerequisites
 
-## Optional synthetic LAN smoke
+The x86_64 AppImage needs glibc 2.39 or newer. GTK/WebKit libraries are bundled. If FUSE 2 is unavailable, use `--appimage-extract-and-run`. Managed LearnHarness operation additionally needs Btrfs, unprivileged user namespaces with subordinate UID/GID allocations, `newuidmap`/`newgidmap`, bubblewrap, util-linux, btrfs-progs, and display support (`xauth` plus rootful Xwayland on Wayland, or Xephyr on X11). The runner checks Btrfs and keeps its HOME/XDG paths under a new private root. It does not modify the normal LearnHarness installation or system services.
 
-This checks pairing and the native test engine only; it is not real LearnHarness
-data acceptance.
+For a quick **synthetic** LAN check only, open the ordinary AppImage on both devices, use **Add Device**, compare all eight pairing-string groups, approve on both sides, then click **Run sync test**. A connection without a verified remote receipt is not success. The owner has already reported this synthetic bidirectional test as passed on the two physical machines; real LearnHarness content still needs the separate acceptance procedure.
 
-1. Put both computers on the same Wi-Fi or LAN and open LearnHarness Sync on each.
-2. Click **Add Device** on both. On one, click **Pair** beside the other computer.
-3. Compare **all eight groups** on both screens through a trusted channel. Click
-   **Strings match — approve** on both only if the entire string matches.
-4. The app returns to Home. Click **Run sync test** once on either computer.
-5. Wait for the verified result. It requires actual remote receipt, integrity
-   verification and adoption of the expected test revision. A connection alone
-   does not count as success.
-
-Keep both apps open during transfer. If discovery is unavailable, choose **Can’t
-find your computer?** inside Add Device to use the invitation fallback. Mutual
-approval is still mandatory.
-
-Do **not** copy a native profile, `identity.json`, or `devices.json` to the other
-computer: each machine needs its own independent identity. Copy only the app or
-source archive. No LearnHarness data directory is needed or accepted.
-
-For physical real-data acceptance, follow [TWO_DEVICE_ACCEPTANCE.md](TWO_DEVICE_ACCEPTANCE.md).
-Use new managed profiles only. The ordinary LearnHarness profile is not opened
-or modified. Do not mark physical acceptance complete until both computers have
-reopened LearnHarness and verified A → B → A content and graph readback.
-
-## Build from source
-
-Enter `learnharness-sync`, install the normal Tauri 2 Linux
-GTK/WebKit development and packaging prerequisites, and use Node.js 22+ and Rust:
-
-```sh
-npm ci
-npm run build
-npm test
-cargo test --locked -p harness-sync-core -p harness-sync-native
-scripts/build-linux-candidates
-```
-
-The AppImage is written under `target/release/bundle/appimage/`. Development browser
-tests are available through `npm run test:ui` with Chromium installed; see TESTING.md.
-Python is only an optional reference-test dependency.
-
-## When something needs attention
-
-- Offline: open both apps on the same LAN; reconnection is automatic.
-- After an update: use this same AppImage on both computers.
-- Strings differ: reject on both. A partial match is insufficient.
-- An interrupted pairing leaves one-sided trust: remove the relationship on both
-  computers using Devices → Manage → Remove Device, then pair again.
-- Two versions need attention: choose Review conflict. Read the actual preserved
-  notes in History. Both branches remain intact; automatic merging is unsupported.
-- A test fails: read its result and allow reconnection. Settings → Advanced →
-  Diagnostics contains connection and storage details. Never delete a profile to
-  make a warning disappear.
-- Renderer problems: the app disables WebKit DMA-BUF rendering for itself by
-  default. This fixed the reproduced Wayland launch failure on the verified host.
-  Explicit environment overrides are respected. No system config is modified.
+If discovery fails, use **Can't find your computer?** in Add Device. If pairing strings differ, reject on both sides. If a transfer fails, keep the disposable roots and record the exact message; never delete a profile to clear a warning. Settings → Advanced → Diagnostics contains technical details. Other distributions, architectures, full-volume exhaustion and cold power loss remain unqualified.
