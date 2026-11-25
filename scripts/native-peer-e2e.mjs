@@ -1,9 +1,9 @@
 import { peerLab } from "./native-peer-lab.mjs";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, realpath, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import assert from "node:assert/strict";
-const root = await mkdtemp(join(tmpdir(), "harnesssync-two-process-"));
+const root = await mkdtemp(join(await realpath(tmpdir()), "harnesssync-two-process-"));
 const {start, wait, pair, close} = peerLab(root, resolve(process.argv[2] || "target/debug/harness-sync-fixture-peer"));
 try {
   let a=await start("Desktop"),b=await start("Laptop");const identities=[a.identity,b.identity];assert.notEqual(...identities);
